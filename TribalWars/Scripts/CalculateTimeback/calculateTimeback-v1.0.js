@@ -1,3 +1,8 @@
+function getUtcDateObj(dateTime) {
+    var utcDate = dateTime.getTime() + (dateTime.getTimezoneOffset() * 60000);
+    return new Date(utcDate + server_utc_diff * 1000);
+}
+
 function checkIfTimeScriptAlreadyRunning() {
     if (document.getElementById('backSnipeTimer') !== null) {
         UI.ErrorMessage('Erro! O script já está ativo. Por favor dê reload na página para o correr novamente.', 3000);
@@ -102,6 +107,7 @@ function loadBackSnipeScript() {
 }
 
 function formatDateOutput(dateValue) {
+    dateValue = getUtcDateObj(dateValue);
     return ('0' + dateValue.getDay()).slice(-2) + ' ' + ('0' + dateValue.getMonth()).slice(-2) + ' ' + dateValue.getFullYear() + ' às ' + dateValue.getHours() + ':' + dateValue.getMinutes() + ':' + dateValue.getSeconds() + ':' + ('000' + dateValue.getMilliseconds()).slice(-3);
 }
 
