@@ -35,7 +35,7 @@ function addScreenTimer(screen, mode = null) {
     }
 
     attachTimerTo.style.position = "relative";
-    attachTimerTo.innerHTML = '<div style="position: absolute;position: absolute;left: 450px;top: 115px;background: #c1a264;padding: 15px;text-align: center;z-index: 1000000;">' +
+    attachTimerTo.innerHTML = '<div style="position: absolute;position: absolute;left: 450px;top: 55px;background: #c1a264;padding: 15px;text-align: center;z-index: 1000000;">' +
     '<h4>Tempo do servidor</h4><span id="backSnipeTimer"></span><br><p style="width: 235px;">Para auxílio visual, pode colocar aqui quando tem de cancelar o ataque</p><input style="text-align: center;" type="text"></div>' + attachTimerTo.innerHTML;
     const targetNode = document.getElementById('serverTime');
     const observer = new MutationObserver((mutationsList) => {
