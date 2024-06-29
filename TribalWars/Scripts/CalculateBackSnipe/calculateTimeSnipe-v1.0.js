@@ -89,7 +89,7 @@ function getIncomingAttacks() {
     /* Adds Calculate Snipe button */
     incomingAttacksDiv.getElementsByTagName('tbody')[0].innerHTML += '<tr><td><input type="button" onclick="triggetAttackCancelTimePrompt()" id="calcBackSnipeButton" class="btn" value="Calcular Snipe"></td><td colspan="4"><a href="#"><i class="icon info-med" onclick="backDisplaySnipeTooltip()"></i></a></td></tr>'; 
 
-    UI.SuccessMessage("Backtime calculator loaded successfully.");
+    UI.SuccessMessage("Backsnipe calculator loaded successfully.");
 }
 
 function loadBackSnipeScript() {
