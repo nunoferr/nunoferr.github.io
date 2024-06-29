@@ -142,7 +142,7 @@ function triggetAttackCancelTimePrompt() {
         return;
     }
   
-    var dialogContent = '<div style="text-align:center;"><h3>Back time calculator</h3>Qual é o tempo que quer usar para cancelar o comando (máximo 19:58)?<br><br><input type="text" id="attackCancelTime" placeholder="Ex: 18:00"><br><br><input type="button" onclick="calcBackSnipe()" class="btn" value="Calcular"></div>';
+    var dialogContent = '<div style="text-align:center;"><h3>Back time calculator</h3>Qual é o tempo que quer usar para cancelar o comando (máximo 19:58)?<br><br><input type="time" id="attackCancelTime" value="18:00" min="00:00" max="19:58"/><br><br><input type="button" onclick="calcBackSnipe()" class="btn" value="Calcular"></div>';
     createDialog("import", dialogContent, Dialog.close());
 }
 
@@ -178,6 +178,12 @@ function calcBackSnipe() {
     }
 
     var attackCancelTimeInMs = Number(attackCancelTime.split(':')[0]) * 60 * 1000 + Number(attackCancelTime.split(':')[1]) * 1000;
+    
+    if (attackCancelTimeInMs > 1198000) {
+        UI.ErrorMessage('Erro! O limite de tempo possível é 19:58.', 3000);
+        return;
+    }
+
     var attackArrivingTimeDateObj = new Date(attackArrivingTime - attackCancelTimeInMs);
     
     /* Disregard milliseconds for the cancel time */
