@@ -16,7 +16,7 @@ class BackSnipeScript {
                 instructions: 'To use this script, you just need to <b>select only 1 attack in any single village</b> by clicking in the checkbox that appeared next to it, followed by the <b>"Calculate" button</b>' +
                 '<br>The script will perform the calculations of at what time you should send your attack and cancel it so this can arrive <b>after the attack that you selected</b>.<br><br>' +
                 'The <b>seconds need to either be zero or a multiple of 2.</b>.<br><br><b>The backsnipe must be done based on the server time</b>, which can be found on the bottom right corner ' +
-                'of the screen, on "<b>??????????????</b>"',
+                'of the screen, on "<b>Server time</b>"',
                 worldTimeTitle: 'World time',
                 worldTimeGuide: 'This script can also be run from the attack confirmation screens to <b>create a section</b> where it will show the ' + 
                 '<b>current time of the server</b> without the user needing to search for it on the aforementioned bottom right corner of your screen.<br><br>The hours, minutes, and seconds displayed will be <b>exactly the same as the ones from the ' + 
