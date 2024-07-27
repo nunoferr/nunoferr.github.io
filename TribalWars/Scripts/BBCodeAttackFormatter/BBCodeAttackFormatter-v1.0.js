@@ -1,3 +1,15 @@
+/*
+* Script Name: BBCode Attack Formatter for Discord
+* Version: v1.0
+* Last Updated: 2024-07-27
+* Author: NunoF-
+* Author URL: https://nunoferr.github.io/
+* Author Contact: Discord - ducks4ever#quack
+* Approved: No approval required
+* Approved Date: No approval required
+* Mod: No approval required
+*/
+
 class BBCodeAttackFormatter {
     static BBCodeAttackFormatterTranslations = {
         en_US: {
