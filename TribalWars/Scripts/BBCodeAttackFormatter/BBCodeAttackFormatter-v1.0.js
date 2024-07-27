@@ -49,7 +49,7 @@ class BBCodeAttackFormatter {
     #openUI() {
         var html = '<div style="text-align:center;min-width:80%;"><h2>' + this.UserTranslation.bbCodeWindow.title + '</h2>' + 
         '<textarea style="width: 90%; height: 80%;" id="bbCodeText" placeholder="' + this.UserTranslation.bbCodeWindow.instruction + '"></textarea>' +
-        '<br><br><button class="btn evt-confirm-btn btn-confirm-yes" id="bbCodeBtn" onclick="bBCodeAttackFormatter.format()">' + this.UserTranslation.bbCodeWindow.generate + '</button><button class="btn evt-cancel-btn btn-confirm-no">' +
+        '<br><br><button class="btn evt-confirm-btn btn-confirm-yes" id="bbCodeBtn" onclick="bBCodeAttackFormatter.format()">' + this.UserTranslation.bbCodeWindow.generate + '</button><button class="btn evt-cancel-btn btn-confirm-no" onclick="Dialog.close()">' +
         this.UserTranslation.bbCodeWindow.cancel + '</button><br></div>';
         this.#createDialog('import', html, Dialog.close());
         $('#popup_box_import').css('min-width', '80%');
