@@ -87,7 +87,12 @@ class BBCodeAttackFormatter {
         bbCodeText = bbCodeText.replaceAll(/^ +/gm, '');
         bbCodeText = bbCodeText.replaceAll('\n** ', '\n**');
         bbCodeText = bbCodeText.replaceAll(' **', '**');
-
+        bbCodeText = bbCodeText.replaceAll('jul.', '07');
+        
+        while (bbCodeText.search(/\(\d\d:\d\d:\d\d\)/g) != -1) {
+            bbCodeText = bbCodeText.replace(/\(\d\d:\d\d:\d\d\)/g, /\d\d:\d\d:\d\d/.exec(bbCodeText)[0]);
+        }
+        
         while (bbCodeText.search(/Aldeia:\*\* \d{3}\|\d{3}/) != -1) {
             var villageCoords = /Aldeia:\*\* (\d{3}\|\d{3})/.exec(bbCodeText)[1];
             var player = '\nJogador: ' +  players.playersFromSdk.find(player => player[0] === villages[villageCoords][4])[1];
