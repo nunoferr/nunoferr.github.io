@@ -88,9 +88,9 @@ class BBCodeAttackFormatter {
         bbCodeText = bbCodeText.replaceAll('\n** ', '\n**');
         bbCodeText = bbCodeText.replaceAll(' **', '**');
         bbCodeText = bbCodeText.replaceAll('jul.', '07');
-        
-        while (bbCodeText.search(/\(\d\d:\d\d:\d\d\)/g) != -1) {
-            bbCodeText = bbCodeText.replace(/\(\d\d:\d\d:\d\d\)/g, /\d\d:\d\d:\d\d/.exec(bbCodeText)[0]);
+
+        while (bbCodeText.search(/\(\d\d:\d\d:\d\d\):\d\d\d/g) != -1) {
+            bbCodeText = bbCodeText.replace(/\(\d\d:\d\d:\d\d\)/.exec(bbCodeText)[0], (/\(\d\d:\d\d:\d\d\)/.exec(bbCodeText)[0]).substring(1, 9));
         }
         
         while (bbCodeText.search(/Aldeia:\*\* \d{3}\|\d{3}/) != -1) {
