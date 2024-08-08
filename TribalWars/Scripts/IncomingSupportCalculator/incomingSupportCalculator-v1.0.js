@@ -16,46 +16,48 @@
  --------------------------------------------------------------------------------------*/
 
 class IncomingSupportCalculator {
-    static IncomingSupportCalculatorTranslations = {
-        en_US: {
-            supportSection: {
-                widgetTitle: 'IncomingSupport',
-                buttonCalculate: 'Calculate Available Support',
-                buttonSimulate: 'Simulate defense',
-                incoming: 'Incoming',
-                willBeInVillage: 'Will be in the village',
-                arrival: 'Arrival',
-                arrivingIn: 'Arriving in',
-                incomingSupport: 'Incoming support',
-                instructions1: 'Select a checkbox on the new "Support" column and wait for the script to load.',
-                instructions2: 'Optionally, select a date and click on the button'
+    static IncomingSupportCalculatorTranslations() {
+        return {
+            en_US: {
+                supportSection: {
+                    widgetTitle: 'IncomingSupport',
+                    buttonCalculate: 'Calculate Available Support',
+                    buttonSimulate: 'Simulate defense',
+                    incoming: 'Incoming',
+                    willBeInVillage: 'Will be in the village',
+                    arrival: 'Arrival',
+                    arrivingIn: 'Arriving in',
+                    incomingSupport: 'Incoming support',
+                    instructions1: 'Select a checkbox on the new "Support" column and wait for the script to load.',
+                    instructions2: 'Optionally, select a date and click on the button'
+                },
+                checkboxesTitle: 'Support',
             },
-            checkboxesTitle: 'Support',
-        },
-        pt_PT: {
-            supportSection: {
-                widgetTitle: 'Apoio a caminho',
-                buttonCalculate: 'Calcular Apoio Disponível',
-                buttonSimulate: 'Simular defesa',
-                incoming: 'A chegar',
-                willBeInVillage: 'Vai estar na aldeia em',
-                arrival: 'Chegada',
-                arrivingIn: 'Chega em',
-                incomingSupport: 'Apoio a chegar',
-                instructions1: 'Selecione uma checkbox na nova coluna de "Suporte" e espere que o script carregue.',
-                instructions2: 'Opcionalmente, selecione uma data e clique no botão'
-            },
-            checkboxesTitle: 'Support',
-        }
-    };
+            pt_PT: {
+                supportSection: {
+                    widgetTitle: 'Apoio a caminho',
+                    buttonCalculate: 'Calcular Apoio Disponível',
+                    buttonSimulate: 'Simular defesa',
+                    incoming: 'A chegar',
+                    willBeInVillage: 'Vai estar na aldeia em',
+                    arrival: 'Chegada',
+                    arrivingIn: 'Chega em',
+                    incomingSupport: 'Apoio a chegar',
+                    instructions1: 'Selecione uma checkbox na nova coluna de "Suporte" e espere que o script carregue.',
+                    instructions2: 'Opcionalmente, selecione uma data e clique no botão'
+                },
+                checkboxesTitle: 'Support',
+            }
+        };
+    }
 
-    static supportSectionActive = false;
     constructor() {
-        this.UserTranslation = game_data.locale in IncomingSupportCalculator.IncomingSupportCalculatorTranslations ? this.UserTranslation = IncomingSupportCalculator.IncomingSupportCalculatorTranslations[game_data.locale] : IncomingSupportCalculator.IncomingSupportCalculatorTranslations.en_US;
+        this.UserTranslation = game_data.locale in IncomingSupportCalculator.IncomingSupportCalculatorTranslations() ? this.UserTranslation = IncomingSupportCalculator.IncomingSupportCalculatorTranslations()[game_data.locale] : IncomingSupportCalculator.IncomingSupportCalculatorTranslations().en_US;
         this.incomingSupportData = [];
         this.availableSupportUnits = Object.create(game_data.units);
         this.availableSupportUnits.splice(this.availableSupportUnits.indexOf('militia'), 1);
         this.progressBarLoading = false;
+        this.supportSectionActive = false
     }
 
     async init() {
@@ -83,7 +85,7 @@ class IncomingSupportCalculator {
     }
 
     async clearOtherIncomingSupportCheckboxes(checkboxObj) {
-        IncomingSupportCalculator.supportSectionActive = false;
+        this.supportSectionActive = false;
         checkboxObj = $(checkboxObj);
         $('.incomingAttackSupportCkb').each(function() {
             if (!$(this).is(checkboxObj)) {
@@ -232,7 +234,7 @@ class IncomingSupportCalculator {
             UI.updateProgressBar($('#IncomingSupportLoadingBar'), c + 1, incomingSupportData.length); 
             if (c === cSize - 1) {
                 currentObj.progressBarLoading = false;
-                IncomingSupportCalculator.supportSectionActive = true;
+                currentObj.supportSectionActive = true;
                 sessionStorage.setItem('incominSupportCounterTroops', JSON.stringify(sessionStorageSavedTroops));
                 return true;
             }
@@ -270,11 +272,11 @@ class IncomingSupportCalculator {
         $('#incomingSupportTable tr:gt(0)').remove();
         $('#support_units_sum tr:gt(0)').remove();
 
-        if (!IncomingSupportCalculator.supportSectionActive && !this.progressBarLoading) {
+        if (!this.supportSectionActive && !this.progressBarLoading) {
             $('#IncomingSupportLoadingBar').remove();
         }
         
-        if (!IncomingSupportCalculator.supportSectionActive) return;
+        if (!this.supportSectionActive) return;
 
         this.incomingSupportData.forEach(function(incomingSupport) {
             $('#incomingSupportTable tbody tr').last().after(`
