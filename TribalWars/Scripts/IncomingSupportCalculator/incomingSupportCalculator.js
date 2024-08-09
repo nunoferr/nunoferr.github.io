@@ -249,7 +249,7 @@ class IncomingSupportCalculator {
             var currentLine = $(this).find('td');
             incomingSupportData.push({
                 'commandId': $(currentLine).find('.quickedit').attr('data-id'),
-                'incoming': $(currentLine).filter(function() { return $(this).find('.quickedit-label').length > 0; }).html(),
+                'incoming': $(currentLine).filter(function() { return $(this).find('.quickedit-label').length > 0; }),
                 'arrival': $(currentLine).filter(function() { return $(this).find('.small').length > 0; }).html(),
                 'arrivingIn': $(currentLine).find('span').filter(function() { return $(this).filter(function() { return $(this).attr('data-endtime') !== undefined; }).length > 0; }).attr('data-endtime')
             });
@@ -277,11 +277,12 @@ class IncomingSupportCalculator {
         }
         
         if (!this.supportSectionActive) return;
-
+        
         this.incomingSupportData.forEach(function(incomingSupport) {
+            $(incomingSupport.incoming).find('.rename-icon').remove();
             $('#incomingSupportTable tbody tr').last().after(`
                 <tr>
-                    <td>${incomingSupport.incoming}</td>
+                    <td>${$(incomingSupport.incoming).html()}</td>
                     <td>${incomingSupport.arrival}</td>
                     <td>${getFormattedArrivalTime(incomingSupport.arrivingIn)}</td>
                 </tr>
