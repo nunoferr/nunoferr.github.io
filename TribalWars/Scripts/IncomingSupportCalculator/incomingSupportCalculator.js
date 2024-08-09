@@ -5,7 +5,7 @@
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
-* Special Thanks to: - Pinus o.O for coming up with the script idea
+* Special Thanks To: - Pinus o.O for coming up with the script idea
 * Approved: Not yet
 * Approved Date: None yet
 * Mod: Non yet
