@@ -32,6 +32,7 @@ class IncomingSupportCalculator {
                     instructions2: 'Optionally, select a date and click on the button'
                 },
                 checkboxesTitle: 'Support',
+                errorNotOverviewScreen: 'This script can only be run from the Overview screen.'
             },
             pt_PT: {
                 supportSection: {
@@ -47,6 +48,7 @@ class IncomingSupportCalculator {
                     instructions2: 'Opcionalmente, selecione uma data e clique no botão'
                 },
                 checkboxesTitle: 'Support',
+                errorNotOverviewScreen: 'Este script apenas pode ser corrido pela página principal da aldeia.'
             }
         };
     }
@@ -61,9 +63,17 @@ class IncomingSupportCalculator {
     }
 
     async init() {
+        if (!this.#isOnOverviewScreen()) {
+            UI.ErrorMessage(this.UserTranslation.errorNotOverviewScreen);
+            return;
+        }
         this.#createUI();
     }
 
+    #isOnOverviewScreen() {
+        return game_data.screen === 'overview';
+    }
+    
     #generateUrl(screen, mode = null, extraParams = {}) {
         var url = `/game.php?village=${game_data.village.id}&screen=${screen}`;
         if (mode !== null) url += `&mode=${mode}`;
