@@ -47,7 +47,7 @@ class IncomingSupportCalculator {
                     instructions1: 'Selecione uma checkbox na nova coluna de "Suporte" e espere que o script carregue.',
                     instructions2: 'Opcionalmente, selecione uma data e clique no botão'
                 },
-                checkboxesTitle: 'Support',
+                checkboxesTitle: 'Suporte',
                 errorNotOverviewScreen: 'Este script apenas pode ser corrido pela página principal da aldeia.'
             }
         };
