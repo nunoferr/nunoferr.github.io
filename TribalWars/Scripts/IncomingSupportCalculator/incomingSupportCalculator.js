@@ -1,7 +1,7 @@
 /*
 * Script Name: Incoming Support Calculator
 * Version: v1.0
-* Last Updated: 2024-08-08
+* Last Updated: 2024-08-09
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
