@@ -1,7 +1,7 @@
 /*
 * Script Name: BBCode Attack Formatter for Discord
-* Version: v1.0
-* Last Updated: 2024-07-27
+* Version: v1.1
+* Last Updated: 2024-08-12
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
