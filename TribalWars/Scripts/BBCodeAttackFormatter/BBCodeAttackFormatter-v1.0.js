@@ -87,7 +87,12 @@ class BBCodeAttackFormatter {
         bbCodeText = bbCodeText.replaceAll(/^ +/gm, '');
         bbCodeText = bbCodeText.replaceAll('\n** ', '\n**');
         bbCodeText = bbCodeText.replaceAll(' **', '**');
-        bbCodeText = bbCodeText.replaceAll('jul.', '07');
+
+        if (game_data.locale === 'pt_PT') {
+            $.each({ 'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04', 'mai': '05', 'jun': '06', 'jul': '07', 'ago': '08', 'set': '09', 'out': '10', 'nov': '11', 'dez': '12' },
+                function(key, val) { bbCodeText = bbCodeText.replaceAll(`${key}.`, val); }
+            );
+        }
 
         while (bbCodeText.search(/\(\d\d:\d\d:\d\d\):\d\d\d/g) != -1) {
             bbCodeText = bbCodeText.replace(/\(\d\d:\d\d:\d\d\)/.exec(bbCodeText)[0], (/\(\d\d:\d\d:\d\d\)/.exec(bbCodeText)[0]).substring(1, 9));
