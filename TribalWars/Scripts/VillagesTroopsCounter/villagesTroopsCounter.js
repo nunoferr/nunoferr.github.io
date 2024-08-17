@@ -25,29 +25,32 @@
                 home: 'Home',
 				scavenging: 'Scavenging',
 				total: 'Total',
-                ErrorMessages: {
-                    PremiumRequired: 'Error. A premium account is required to run this script!',
-                    ErrorFetching: 'An error occured while trying to fetch the following URL:',
-                    MissingSavengeMassScreenElement: 'An error occurred trying to located the ScavengeMassScreen element inside the mass scavenge page.'
-                }
+                errorMessages: {
+                    premiumRequired: 'Error. A premium account is required to run this script!',
+                    errorFetching: 'An error occured while trying to fetch the following URL:',
+                    missingSavengeMassScreenElement: 'An error occurred trying to located the ScavengeMassScreen element inside the mass scavenge page.'
+                },
+                successMessage: 'Loaded successfully!',
+                credits: 'Village Troops Counter script v1.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 title: 'Calculador de tropas em casa e em buscas',
                 home: 'Em casa',
 				scavenging: 'Em busca',
 				total: 'Total',
-                ErrorMessages: {
-                    PremiumRequired: 'Erro. É necessário possuir conta premium para correr este script!',
-                    ErrorFetching: 'Ocorreu um erro ao tentar carregar o seguinte URL:',
-                    MissingSavengeMassScreenElement: 'Ocorreu um erro ao tentar localizar o elemento ScavengeMassScreen dentro da página de buscas em massa.'
-                }
+                errorMessages: {
+                    premiumRequired: 'Erro. É necessário possuir conta premium para correr este script!',
+                    errorFetching: 'Ocorreu um erro ao tentar carregar o seguinte URL:',
+                    missingSavengeMassScreenElement: 'Ocorreu um erro ao tentar localizar o elemento ScavengeMassScreen dentro da página de buscas em massa.'
+                },
+                successMessage: 'Carregado com sucesso!',
+                credits: 'Calculador de tropas em casa e em buscas v1.0 por NunoF- (.com.pt)'
             }
         };
     }
 
     constructor() {
         this.UserTranslation = game_data.locale in VillagesTroopsCounter.VillagesTroopsCounterTranslations() ? this.UserTranslation = VillagesTroopsCounter.VillagesTroopsCounterTranslations()[game_data.locale] : VillagesTroopsCounter.VillagesTroopsCounterTranslations().en_US;
-        this.UserTranslation = VillagesTroopsCounter.VillagesTroopsCounterTranslations().en_US;
         this.availableSupportUnits = Object.create(game_data.units);
         this.availableSupportUnits = Object.getPrototypeOf(this.availableSupportUnits);
         this.availableSupportUnits.splice(this.availableSupportUnits.indexOf('militia'), 1);
@@ -55,7 +58,7 @@
 
     init() {
         if (!game_data.features.Premium.active) {
-            UI.ErrorMessage(this.UserTranslation.ErrorMessages.PremiumRequired);
+            UI.ErrorMessage(this.UserTranslation.errorMessages.premiumRequired);
             return;
         }
         this.#createUI();
@@ -91,7 +94,7 @@
 			},
 			error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR);
-				UI.ErrorMessage(`${this.UserTranslation.ErrorMessages.ErrorFetching} ${url}`); 
+				UI.ErrorMessage(`${this.UserTranslation.errorMessages.errorFetching} ${url}`); 
 			}
 		});
 		return temp_data;
@@ -101,7 +104,7 @@
 		var html = this.#fetchHtmlPage(this.#generateUrl('place', 'scavenge_mass'));
 		var matches = html.match(/ScavengeMassScreen[\s\S]*?(,\n *\[.*?\])/);
         if (matches.length <= 1) {
-            UI.ErrorMessage(this.UserTranslation.ErrorMessages.MissingSavengeMassScreenElement); 
+            UI.ErrorMessage(this.UserTranslation.errorMessages.missingSavengeMassScreenElement); 
             return;
         }
 
@@ -161,11 +164,11 @@
         </table>
 </div>
 <br>
-<span style="text-decoration: bold;font-weight: bold;font-size: 10px;">Village Troops Counter script v1.0 by NunoF- (.com.pt)</span>
+<span style="text-decoration: bold;font-weight: bold;font-size: 10px;">${this.UserTranslation.credits}</span>
 `;
         Dialog.show('import', html, Dialog.close());
         $('#popup_box_import').css('width', 'unset');
-        UI.SuccessMessage('Loaded successfully.', 500); 
+        UI.SuccessMessage(this.UserTranslation.successMessage, 500); 
 
 		function getGroupsHtml(objInstance) {
 			var groups = objInstance.#getGroupsObj();
