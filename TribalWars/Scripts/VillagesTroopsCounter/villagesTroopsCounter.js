@@ -21,7 +21,7 @@
     static VillagesTroopsCounterTranslations() {
         return {
             en_US: {
-                title: 'Home and Scavenging troops calculator',
+                title: 'Home and Scavenging troops counter',
                 home: 'Home',
 				scavenging: 'Scavenging',
 				total: 'Total',
@@ -34,7 +34,7 @@
                 credits: 'Village Troops Counter script v1.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
-                title: 'Calculador de tropas em casa e em buscas',
+                title: 'Contador de tropas em casa e em buscas',
                 home: 'Em casa',
 				scavenging: 'Em busca',
 				total: 'Total',
@@ -44,13 +44,14 @@
                     missingSavengeMassScreenElement: 'Ocorreu um erro ao tentar localizar o elemento ScavengeMassScreen dentro da página de buscas em massa.'
                 },
                 successMessage: 'Carregado com sucesso!',
-                credits: 'Calculador de tropas em casa e em buscas v1.0 por NunoF- (.com.pt)'
+                credits: 'Contador de tropas em casa e em buscas v1.0 por NunoF- (.com.pt)'
             }
         };
     }
 
     constructor() {
         this.UserTranslation = game_data.locale in VillagesTroopsCounter.VillagesTroopsCounterTranslations() ? this.UserTranslation = VillagesTroopsCounter.VillagesTroopsCounterTranslations()[game_data.locale] : VillagesTroopsCounter.VillagesTroopsCounterTranslations().en_US;
+        this.UserTranslation = VillagesTroopsCounter.VillagesTroopsCounterTranslations().en_US;
         this.availableSupportUnits = Object.create(game_data.units);
         this.availableSupportUnits = Object.getPrototypeOf(this.availableSupportUnits);
         this.availableSupportUnits.splice(this.availableSupportUnits.indexOf('militia'), 1);
