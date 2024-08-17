@@ -21,7 +21,7 @@
     static VillagesTroopsCounterTranslations() {
         return {
             en_US: {
-                title: 'Home and Scavenging troops counter',
+                title: 'Home and Scavenging Troops Counter',
                 home: 'Home',
 				scavenging: 'Scavenging',
 				total: 'Total',
