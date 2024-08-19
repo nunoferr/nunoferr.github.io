@@ -223,7 +223,6 @@ class IncomingSupportCalculator {
             fetchTroops(currentObj, sessionStorageSavedTroops, lastRunTime, incomingSupportData, c)
         }
 
-
         async function getSavedTroops(currentObj, sessionStorageSavedTroops, incomingSupportData, c) {
             incomingSupportData[c]['units'] = sessionStorageSavedTroops[incomingSupportData[c].commandId];
             // Exit condition
