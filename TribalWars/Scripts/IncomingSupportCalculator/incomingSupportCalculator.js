@@ -61,7 +61,6 @@ class IncomingSupportCalculator {
         this.availableSupportUnits = Object.create(game_data.units);
         this.availableSupportUnits.splice(this.availableSupportUnits.indexOf('militia'), 1);
         this.progressBarLoading = false;
-        this.supportSectionActive = false
     }
 
     async init() {
@@ -97,7 +96,6 @@ class IncomingSupportCalculator {
     }
 
     async clearOtherIncomingSupportCheckboxes(checkboxObj) {
-        this.supportSectionActive = false;
         checkboxObj = $(checkboxObj);
         $('.incomingAttackSupportCkb').each(function() {
             if (!$(this).is(checkboxObj)) {
@@ -190,19 +188,24 @@ class IncomingSupportCalculator {
 
     async calculateAvailableSupport(finalTimestamp = null) {
         if (finalTimestamp === null) finalTimestamp = this.#getFinalTimestamp();
-        if (isNaN(finalTimestamp)) return;
-
-        var data = null;
-        await $.get(this.#generateUrl('place', 'command')).done(function(data_temp) {
-            data = data_temp;
-        });
-
-        this.setIncomingSupportData(data, finalTimestamp);
-        await this.setIncomingTroops();
+        if (!isNaN(finalTimestamp)) {
+            var data = null;
+            await $.get(this.#generateUrl('place', 'command')).done(function(data_temp) {
+                data = data_temp;
+            });
+    
+            this.setIncomingSupportData(data, finalTimestamp);
+        } else {
+            this.setIncomingSupportData(null, null);
+        }
+        this.setIncomingTroops();
     }
 
     async setIncomingTroops() {
-        if (!(this.incomingSupportData.length > 0)) return;
+        if (!(this.incomingSupportData.length > 0)) {
+            this.fillSupportTable();
+            return;
+        }
         var sessionStorageSavedTroops = sessionStorage.getItem('incominSupportCounterTroops') !== null ? JSON.parse(sessionStorage.getItem('incominSupportCounterTroops')) : {};
         this.progressBarLoading = true;
         $('#IncomingSupportLoadingBarContainer').html('<div id="IncomingSupportLoadingBar" class="progress-bar live-progress-bar"><div style="background: rgb(146, 194, 0);"></div><span class="label" style="margin-top:0px;"></span></div>');
@@ -246,7 +249,7 @@ class IncomingSupportCalculator {
             UI.updateProgressBar($('#IncomingSupportLoadingBar'), c + 1, incomingSupportData.length); 
             if (c === cSize - 1) {
                 currentObj.progressBarLoading = false;
-                currentObj.supportSectionActive = true;
+                currentObj.fillSupportTable();
                 sessionStorage.setItem('incominSupportCounterTroops', JSON.stringify(sessionStorageSavedTroops));
                 return true;
             }
@@ -284,12 +287,12 @@ class IncomingSupportCalculator {
         $('#incomingSupportTable tr:gt(0)').remove();
         $('#support_units_sum tr:gt(0)').remove();
 
-        if (!this.supportSectionActive && !this.progressBarLoading) {
+        if (this.incomingSupportData.length === 0 && !this.progressBarLoading) {
             $('#IncomingSupportLoadingBar').remove();
         }
         
-        if (!this.supportSectionActive) return;
-        
+        if(this.incomingSupportData.length === 0) return;
+
         this.incomingSupportData.forEach(function(incomingSupport) {
             $(incomingSupport.incoming).find('.rename-icon').remove();
             $('#incomingSupportTable tbody tr').last().after(`
@@ -397,6 +400,3 @@ class IncomingSupportCalculator {
 
 var incomingSupportCalculator = new IncomingSupportCalculator();
 incomingSupportCalculator.init();
-$(window.TribalWars).on('global_tick', function () {
-    incomingSupportCalculator.fillSupportTable();
-});
