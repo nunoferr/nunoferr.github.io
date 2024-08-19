@@ -20,7 +20,7 @@ class IncomingSupportCalculator {
         return {
             en_US: {
                 supportSection: {
-                    widgetTitle: 'IncomingSupport',
+                    widgetTitle: 'Incoming Support',
                     buttonCalculate: 'Calculate Available Support',
                     buttonSimulate: 'Simulate defense',
                     incoming: 'Incoming',
@@ -32,7 +32,8 @@ class IncomingSupportCalculator {
                     instructions2: 'Optionally, select a date and click on the button'
                 },
                 checkboxesTitle: 'Support',
-                errorNotOverviewScreen: 'This script can only be run from the Overview screen.'
+                errorNotOverviewScreen: 'This script can only be run from the Overview screen.',
+                credits: 'Incoming Support Calculator script v1.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 supportSection: {
@@ -48,7 +49,8 @@ class IncomingSupportCalculator {
                     instructions2: 'Opcionalmente, selecione uma data e clique no botão'
                 },
                 checkboxesTitle: 'Suporte',
-                errorNotOverviewScreen: 'Este script apenas pode ser corrido pela página principal da aldeia.'
+                errorNotOverviewScreen: 'Este script apenas pode ser corrido pela página principal da aldeia.',
+                credits: 'Calculador de Apoio a Caminho v1.0 por NunoF- (.com.pt)'
             }
         };
     }
@@ -135,7 +137,7 @@ class IncomingSupportCalculator {
                     </tr>
                     </tbody>
                 </table>
-            </div>
+            <div style="text-decoration: bold;font-weight: bold;font-size: 10px;background: #e4c17d; background-image: url(https://dspt.innogamescdn.com/asset/2a2f957f/graphic/screen/tableheader_bg3.png);">${this.UserTranslation.credits}</div>
         </div>
         </div>`;
         $('#show_incoming_units').before(html);
