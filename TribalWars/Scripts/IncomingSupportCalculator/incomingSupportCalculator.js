@@ -306,6 +306,9 @@ class IncomingSupportCalculator {
 
         fillIncomingSupportTable(this.#getCurrentSupportTroops(), this.#getCurrentVillageAndSupportTroops(), this.UserTranslation);
 
+        // Enables tooltip for commands on the Incoming Support Calculator table
+        Command.init();
+
         function getFormattedArrivalTime(timestamp) {
             var dateValue = new Date(getArrivalTime(timestamp));
             return ('0' + dateValue.getHours()).slice(-2) + ':' + ('0' + dateValue.getMinutes()).slice(-2) + ':' + ('0' + dateValue.getSeconds()).slice(-2);
