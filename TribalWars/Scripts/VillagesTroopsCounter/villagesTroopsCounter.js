@@ -5,9 +5,10 @@
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
-* Approved: Not yet
-* Approved Date: None yet
-* Mod: Non yet
+* Approved: Yes
+* Approved Date: 2024-08-20
+* Forum URL (.net): https://forum.tribalwars.net/index.php?threads/villages-troops-counter.292771/
+* Mod: RedAlert
 */
 
 /*--------------------------------------------------------------------------------------
