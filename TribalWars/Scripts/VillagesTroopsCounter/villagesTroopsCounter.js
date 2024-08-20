@@ -134,7 +134,7 @@
     }
 
 	#getGroupsObj() {
-		var html = $.parseHTML(this.#fetchHtmlPage(this.#generateUrl('overview_villages', 'groups')));
+		var html = $.parseHTML(this.#fetchHtmlPage(this.#generateUrl('overview_villages', 'groups', {'type': 'static'})));
 		var groups = $(html).find('.vis_item a,strong');
 		var groupsArr = {};
 		$.each(groups, function(id, group) {
