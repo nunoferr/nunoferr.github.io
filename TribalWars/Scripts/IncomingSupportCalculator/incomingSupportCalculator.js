@@ -6,9 +6,10 @@
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
 * Special Thanks To: - Pinus o.O for coming up with the script idea
-* Approved: Not yet
-* Approved Date: None yet
-* Mod: Non yet
+* Approved: Yes
+* Approved Date: 2024-08-21
+* Forum URL (.net): https://forum.tribalwars.net/index.php?threads/incoming-support-calculator.292724/
+* Mod: RedAlert
 */
 
 /*--------------------------------------------------------------------------------------
