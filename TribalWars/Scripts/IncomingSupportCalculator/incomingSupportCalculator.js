@@ -152,19 +152,7 @@ class IncomingSupportCalculator {
    <h4 style="position:relative;">${this.UserTranslation.supportSection.incomingSupport}</h4>
    <table id="support_units_sum" class="vis overview_table" width="100%" style="background: #edd8ad;">
       <thead>
-         <tr>
-            <th style="text-align:center" width="35"></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="spear"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_spear.png" class="" data-title="Lanceiro"></a></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="sword"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_sword.png" class="" data-title="Espadachim"></a></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="axe"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_axe.png" class="" data-title="Viking"></a></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="spy"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_spy.png" class="" data-title="Batedor"></a></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="light"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_light.png" class="" data-title="Cavalaria leve"></a></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="heavy"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_heavy.png" class="" data-title="Cavalaria Pesada"></a></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="ram"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_ram.png" class="" data-title="Aríete"></a></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="catapult"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_catapult.png" class="" data-title="Catapulta"></a></th>
-            <th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="knight"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_knight.png" class="" data-title="Paladino"></a></th>
-            <th class="center" style="width: 35px" data-title="População"><span class="icon header population"></span></th>
-         </tr>
+         ${fillSupportTableHeaders(this)}
       </thead>
       <tbody>
       </tbody>
@@ -172,8 +160,18 @@ class IncomingSupportCalculator {
    <div></div>
 </div>`;
         $(incomingSupportTable).before(troopsTableHtml);
-    }
 
+        function fillSupportTableHeaders(currentObj) {
+            var html = '';
+            $.each(currentObj.availableSupportUnits, function(id, unit) {
+                html += `<th style="text-align:center" width="35"><a href="#" class="unit_link" data-unit="knight"><img src="https://dspt.innogamescdn.com/asset/4f05e65d/graphic/unit/unit_${unit}.png" class="" data-title="${unit}"></a></th>`;
+            });
+            html = `<tr><th style="text-align:center" width="35"></th>${html}</tr>`;
+            $('#support_units_sum thead').last().append(html);
+            return html;
+        }
+    }
+        
     #getFinalTimestamp() {
         var selectedCheckbox = $('#commands_incomings table .command-row .incomingAttackSupportCkb').filter(function() { return $(this).is(":checked")} );
         return parseInt(selectedCheckbox.parent().parent().find('span').filter(function() {
@@ -304,7 +302,7 @@ class IncomingSupportCalculator {
             `);
         });
 
-        fillIncomingSupportTable(this.#getCurrentSupportTroops(), this.#getCurrentVillageAndSupportTroops(), this.UserTranslation);
+        fillIncomingSupportTable(this.#getCurrentSupportTroops(), this.#getCurrentVillageAndSupportTroops(), this.availableSupportUnits, this.UserTranslation);
 
         // Enables tooltip for commands on the Incoming Support Calculator table
         Command.init();
@@ -331,7 +329,7 @@ class IncomingSupportCalculator {
             }
         }
 
-        function fillIncomingSupportTable(troops, currentVillageAndSupportTroops, UserTranslation) {
+        function fillIncomingSupportTable(troops, currentVillageAndSupportTroops, availableSupportUnits, UserTranslation) {
             var troopsHtml = '<tr>';
             troopsHtml += `<td class="center" data-unit="${troop}">${UserTranslation.supportSection.incoming}</td>`;
             for (var troop in troops) {
@@ -348,7 +346,7 @@ class IncomingSupportCalculator {
             willBeInVillageHtml += '</tr>';
             $('#support_units_sum tbody').last().append(willBeInVillageHtml);
 
-            var htmlBtn = `<tr><td colspan="11"><input type="button" class="btn" onclick="incomingSupportCalculator.openSimulator();" value="${UserTranslation.supportSection.buttonSimulate}"/></td></tr>`;
+            var htmlBtn = `<tr><td colspan="${availableSupportUnits.length + 1}"><input type="button" class="btn" onclick="incomingSupportCalculator.openSimulator();" value="${UserTranslation.supportSection.buttonSimulate}"/></td></tr>`;
             $('#support_units_sum tbody').last().append(htmlBtn);
         }
     }
