@@ -51,7 +51,7 @@ class IncomingSupportCalculator {
                 },
                 checkboxesTitle: 'Suporte',
                 errorNotOverviewScreen: 'Este script apenas pode ser corrido pela página principal da aldeia.',
-                credits: 'Calculador de Apoio a Caminho v1.0 por NunoF- (.com.pt)'
+                credits: 'Calculador de Apoio a Caminho v1.1 por NunoF- (.com.pt)'
             }
         };
     }
