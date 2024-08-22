@@ -103,14 +103,15 @@
 
     #getTroopsObj() {
 		var html = this.#fetchHtmlPage(this.#generateUrl('place', 'scavenge_mass'));
-		var matches = html.match(/ScavengeMassScreen[\s\S]*?(,\n *\[.*?\])/);
+        var matches = html.match(/ScavengeMassScreen[\s\S]*?(,\n *\[.*?\}{0,3}\],\n)/);
         if (matches.length <= 1) {
-            UI.ErrorMessage(this.UserTranslation.errorMessages.missingSavengeMassScreenElement); 
+            UI.ErrorMessage(this.UserTranslation.errorMessages.missingSavengeMassScreenElement);
             return;
         }
-
-		matches[1] = matches[1].substring(matches[1].indexOf('['))
-        var scavengingObject = JSON.parse(matches[1]);
+        matches = matches[1];
+        matches = matches.substring(matches.indexOf('['))
+        matches = matches.substring(0, matches.length - 2)
+        var scavengingObject = JSON.parse(matches);
 
         var troopsObj = {
             'villagesTroops': this.#initTroops(),
