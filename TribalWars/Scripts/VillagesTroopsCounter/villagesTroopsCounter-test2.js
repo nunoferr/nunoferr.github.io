@@ -110,7 +110,7 @@
         var currentPage = 0;
         do {
             var scavengingObject = getScavengeMassScreenJson(this, currentPage);
-            if (!scavengingObject && currentPage === 0) return;
+            if (!scavengingObject) return;
             if (scavengingObject.length === 0) break;
 
             $.each(scavengingObject, function(id, villageData) {
