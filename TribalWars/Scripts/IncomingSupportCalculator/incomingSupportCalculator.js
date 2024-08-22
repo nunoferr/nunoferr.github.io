@@ -1,7 +1,7 @@
 /*
 * Script Name: Incoming Support Calculator
-* Version: v1.0
-* Last Updated: 2024-08-19
+* Version: v1.1
+* Last Updated: 2024-08-22
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
@@ -34,7 +34,7 @@ class IncomingSupportCalculator {
                 },
                 checkboxesTitle: 'Support',
                 errorNotOverviewScreen: 'This script can only be run from the Overview screen.',
-                credits: 'Incoming Support Calculator script v1.0 by NunoF- (.com.pt)'
+                credits: 'Incoming Support Calculator script v1.1 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 supportSection: {
