@@ -1,7 +1,7 @@
 /*
 * Script Name: Troop Counter Saven
-* Version: v1.0
-* Last Updated: 2024-08-17
+* Version: v1.1
+* Last Updated: 2024-08-23
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
@@ -32,7 +32,8 @@
                     missingSavengeMassScreenElement: 'An error occurred trying to located the ScavengeMassScreen element inside the mass scavenge page.'
                 },
                 successMessage: 'Loaded successfully!',
-                credits: 'Village Troops Counter script v1.0 by NunoF- (.com.pt)'
+                loadingMessage: 'Loading...',
+                credits: 'Village Troops Counter script v1.1 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 title: 'Contador de tropas em casa e em buscas',
@@ -45,7 +46,8 @@
                     missingSavengeMassScreenElement: 'Ocorreu um erro ao tentar localizar o elemento ScavengeMassScreen dentro da página de buscas em massa.'
                 },
                 successMessage: 'Carregado com sucesso!',
-                credits: 'Contador de tropas em casa e em buscas v1.0 por NunoF- (.com.pt)'
+                loadingMessage: 'A carregar...',
+                credits: 'Contador de tropas em casa e em buscas v1.1 por NunoF- (.com.pt)'
             }
         };
     }
@@ -101,37 +103,51 @@
 		return temp_data;
 	}
 
-    #getTroopsObj() {
-		var html = this.#fetchHtmlPage(this.#generateUrl('place', 'scavenge_mass'));
-        var matches = html.match(/ScavengeMassScreen[\s\S]*?(,\n *\[.*?\}{0,3}\],\n)/);
-        if (matches.length <= 1) {
-            UI.ErrorMessage(this.UserTranslation.errorMessages.missingSavengeMassScreenElement);
-            return;
-        }
-        matches = matches[1];
-        matches = matches.substring(matches.indexOf('['))
-        matches = matches.substring(0, matches.length - 2)
-        var scavengingObject = JSON.parse(matches);
-
+    async #getTroopsObj() {
         var troopsObj = {
             'villagesTroops': this.#initTroops(),
             'scavengingTroops': this.#initTroops()
         };
 		
-        $.each(scavengingObject, function(id, villageData) {
-            $.each(villageData.unit_counts_home, function(key, value) {
-                if (key !== 'militia') troopsObj.villagesTroops[key] += value;
+        var currentPage = 0;
+        var lastRunTime = null;
+        do {
+            var scavengingObject = await getScavengeMassScreenJson(this, currentPage, lastRunTime);
+            if (!scavengingObject) return;
+            if (scavengingObject.length === 0) break;
+            lastRunTime = Date.now();
+
+            $.each(scavengingObject, function(id, villageData) {
+                $.each(villageData.unit_counts_home, function(key, value) {
+                    if (key !== 'militia') troopsObj.villagesTroops[key] += value;
+                });
+                
+                $.each(villageData.options, function(id, option) {
+                    if (option.scavenging_squad !== null) {
+                        $.each(option.scavenging_squad.unit_counts, function(key, value) {
+                            if (key !== 'militia') troopsObj.scavengingTroops[key] += value;
+                        });
+                    }
+                });
             });
-            
-            $.each(villageData.options, function(id, option) {
-                if (option.scavenging_squad !== null) {
-                    $.each(option.scavenging_squad.unit_counts, function(key, value) {
-                        if (key !== 'militia') troopsObj.scavengingTroops[key] += value;
-                    });
-                }
-            });
-        });
+            currentPage++;
+        } while(true)
+        
         return troopsObj;
+
+        async function getScavengeMassScreenJson(currentObj, currentPage = 0, lastRunTime = 0) {
+            await new Promise(res => setTimeout(res, Math.max(lastRunTime + 200 - Date.now(), 0))); 
+            var html = currentObj.#fetchHtmlPage(currentObj.#generateUrl('place', 'scavenge_mass', {'page': currentPage}));
+            var matches = html.match(/ScavengeMassScreen[\s\S]*?(,\n *\[.*?\}{0,3}\],\n)/);
+            if (matches.length <= 1) {
+                UI.ErrorMessage(this.UserTranslation.errorMessages.missingSavengeMassScreenElement);
+                return false;
+            }
+            matches = matches[1];
+            matches = matches.substring(matches.indexOf('['))
+            matches = matches.substring(0, matches.length - 2)
+            return JSON.parse(matches);
+        }
     }
 
 	#getGroupsObj() {
@@ -145,8 +161,9 @@
 		return groupsArr;
 	}
 
-    #createUI() {
-        var troopsObj = this.#getTroopsObj();
+    async #createUI() {
+        UI.InfoMessage(this.UserTranslation.loadingMessage);
+        var troopsObj = await this.#getTroopsObj();
 		var html = `
 <div>
 <br>
