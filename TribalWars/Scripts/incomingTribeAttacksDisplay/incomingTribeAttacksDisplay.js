@@ -70,7 +70,6 @@
         <div style="width: calc(100% + 18px);position: absolute;left: -9px;bottom: -9px;background-image: url(https://dspt.innogamescdn.com/asset/2a2f957f/graphic/screen/tableheader_bg3.png);background-repeat: round;margin-bottom: 0px;border-radius: 0px 0 8px 8px;text-align: center;font-weight: bold;font-size: 10px;">${this.UserTranslation.credits}</div>
         `;        
         Dialog.show('import', html, Dialog.close());
-        $('#popup_box_import').css('min-width', '300px');
         UI.SuccessMessage(this.UserTranslation.successMessage);
     }
         
