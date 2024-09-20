@@ -22,10 +22,10 @@
     static IncomingTribeAttacksDisplayTranslations() {
         return {
             en_US: {
-                title: 'Incoming Tribe Ataques',
+                title: 'Incoming Tribe Attacks',
                 loadingMessage: 'Loading...',
                 successMessage: 'Loaded successfully!',
-                credits: 'Incoming Tribe Ataques script v1.0 by NunoF- (.com.pt)'
+                credits: 'Incoming Tribe Attacks script v1.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 title: 'Ataques a chegar à tribo',
