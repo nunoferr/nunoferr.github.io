@@ -23,12 +23,14 @@
         return {
             en_US: {
                 title: 'Incoming Tribe Attacks',
+                total: 'Total',
                 loadingMessage: 'Loading...',
                 successMessage: 'Loaded successfully!',
                 credits: 'Incoming Tribe Attacks Display script v1.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 title: 'Ataques a chegar à Tribo',
+                total: 'Total',
                 loadingMessage: 'A carregar...',
                 successMessage: 'Carregado com sucesso!',
                 credits: 'Exibidor de ataques a chegar à tribo v1.0 por NunoF- (.com.pt)'
@@ -102,13 +104,13 @@
         ${fillIncomingTableHeader(tribeIncomingAttacksLines.first().find('th'))}
         ${membersLine}
         <tr><td colspan="2"><hr></td></tr>
-        ${fillIncomingTableSummary(tribeIncomingAttacksLines.last().find('td:last').text().trim())}
+        ${fillIncomingTableSummary(this.UserTranslation.total, tribeIncomingAttacksLines.last().find('td:last').text().trim())}
         `;
 
-        function fillIncomingTableSummary(totalIncomingTribeAttacksCounter) {
+        function fillIncomingTableSummary(totalName,totalIncomingTribeAttacksCounter) {
             return `
             <tr>
-                <td style="font-weight: bold;">Total</td>
+                <td style="font-weight: bold;">${totalName}</td>
                 <td ${getIncomingTableElementStyle(totalIncomingTribeAttacksCounter)}>${totalIncomingTribeAttacksCounter}</td>
             </tr>
             `;
