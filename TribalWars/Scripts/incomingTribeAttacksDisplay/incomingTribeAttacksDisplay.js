@@ -25,13 +25,13 @@
                 title: 'Incoming Tribe Attacks',
                 loadingMessage: 'Loading...',
                 successMessage: 'Loaded successfully!',
-                credits: 'Incoming Tribe Attacks script v1.0 by NunoF- (.com.pt)'
+                credits: 'Incoming Tribe Attacks Display script v1.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
-                title: 'Ataques a chegar à tribo',
+                title: 'Ataques a chegar à Tribo',
                 loadingMessage: 'A carregar...',
                 successMessage: 'Carregado com sucesso!',
-                credits: 'Ataques a chegar à tribo v1.0 por NunoF- (.com.pt)'
+                credits: 'Exibidor de ataques a chegar à tribo v1.0 por NunoF- (.com.pt)'
             }
         };
     }
@@ -60,12 +60,12 @@
         Dialog.close();
         var html = `
         <h2 style="text-align: center;">${this.UserTranslation.title}</h2>
-        <table class="vis" style="width: 100%;">
+        <table class="vis" style="width: 100%;margin-bottom:13px;">
             <tbody>
                 ${await this.#fillIncomingTableMembers()}
             </tbody>
         </table>
-        <div style="width: calc(100% + 18px);position: absolute;left: -9px;bottom: -9px;background-image: url(https://dspt.innogamescdn.com/asset/2a2f957f/graphic/screen/tableheader_bg3.png);margin-bottom: 0px;border-radius: 0px 0 8px 8px;text-align: center;font-weight: bold;font-size: 10px;">${this.UserTranslation.credits}</div>
+        <div style="width: calc(100% + 18px);position: absolute;left: -9px;bottom: -9px;background-image: url(https://dspt.innogamescdn.com/asset/2a2f957f/graphic/screen/tableheader_bg3.png);background-repeat: round;margin-bottom: 0px;border-radius: 0px 0 8px 8px;text-align: center;font-weight: bold;font-size: 10px;">${this.UserTranslation.credits}</div>
         `;        
         Dialog.show('import', html, Dialog.close());
         $('#popup_box_import').css('min-width', '300px');
