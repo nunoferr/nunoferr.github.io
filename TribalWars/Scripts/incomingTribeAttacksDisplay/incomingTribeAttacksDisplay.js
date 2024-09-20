@@ -60,7 +60,7 @@
         Dialog.close();
         var html = `
         <h2 style="text-align: center;">${this.UserTranslation.title}</h2>
-        <table class="vis" style="width: 100%;margin-bottom: 2px;">
+        <table class="vis" style="width: 100%;">
             <tbody>
                 ${await this.#fillIncomingTableMembers()}
             </tbody>
