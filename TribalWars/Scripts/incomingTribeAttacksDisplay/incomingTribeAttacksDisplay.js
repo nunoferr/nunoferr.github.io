@@ -84,7 +84,8 @@
     async #fillIncomingTableMembers() {
         var membersLine = '';
         var tribeIncomingAttacks = await this.fetchMembersTroopsPage();
-        var tribeIncomingAttacksLines = $(tribeIncomingAttacks).find('#ally_content table:last tr');
+        var contentContainer = !($('#mobileHeader').length > 0) ? 'contentContainer' : 'content_value';
+        var tribeIncomingAttacksLines = $(tribeIncomingAttacks).find(`#${contentContainer} table:last tr`);
         $.each(tribeIncomingAttacksLines.slice(1, -1), function (key, value) {
             var playerHref = $(value).find('a').attr('href');
             var playerName = $(value).find('a').text().trim();
