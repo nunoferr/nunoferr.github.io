@@ -1,7 +1,7 @@
 /*
-* Script Name: Incoming Tribe Attacks
+* Script Name: Tribe Fulls Calculator
 * Version: v1.0
-* Last Updated: 2024-09-20
+* Last Updated: 2024-09-23
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever
