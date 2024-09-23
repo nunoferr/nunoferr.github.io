@@ -73,8 +73,10 @@
         <h2 style="text-align: center;">${this.UserTranslation.title}</h2>
         <div style="margin-bottom: 30px;">
             Aldeias com 1000 vikings e 300 cl = ${totalCount['axeAndCl']}
+            </br>Aldeias: ${totalCount['villagesAxeAndCl']}
             </br></br>
             Aldeias só com 1000 vikings ou só com 300 cl = ${totalCount['axeOrCl']}
+            </br>Aldeias: ${totalCount['villagesAxeOrCl']}
         </div>
         <div style="width: calc(100% + 18px);position: absolute;left: -9px;bottom: -9px;background-image: url(https://dspt.innogamescdn.com/asset/2a2f957f/graphic/screen/tableheader_bg3.png);background-repeat: round;margin-bottom: 0px;border-radius: 0px 0 8px 8px;text-align: center;font-weight: bold;font-size: 10px;line-height: 1.2;">${this.UserTranslation.credits}</div>
         `;        
@@ -125,14 +127,15 @@
         var pageContent = await this.#fetchTribeUserTroopsPage(userId);
         var contentContainer = !($('#mobileHeader').length > 0) ? 'contentContainer' : 'content_value';
         var troopsUserPageLines = $(pageContent).find(`#${contentContainer} table:last tr`);
-        var userTroopsList = [];
+        var userTroopsList = {};
         var currentObj = this;
         $.each(troopsUserPageLines.slice(1), function (key, value) {
             var villageTroops = {};
             $.each(currentObj.availableSupportUnits, function(key2, value2) {
                 villageTroops[value2] = $(value).find('td').eq(currentObj.troopsColumnLocation[value2]).text().trim();
             });
-            userTroopsList.push(villageTroops);
+            
+            userTroopsList[/\d{3}\|\d{3}/.exec($(value).find('td a').eq(0).text())[0]] = villageTroops;
         });
         return userTroopsList;
     }
@@ -140,7 +143,9 @@
     async #getTribeTroopsCounter(usersIdsArr) {
         var totalCount = {
             'axeAndCl' : 0,
-            'axeOrCl' : 0
+            'villagesAxeAndCl': '',
+            'axeOrCl' : 0,
+            'villagesAxeOrCl': ''
         };
 
         var lastRunTime = 0;
@@ -151,11 +156,14 @@
             await new Promise(res => setTimeout(res, Math.max(lastRunTime + 200 - Date.now(), 0))); 
             var userTroops = await this.#handleMemberPage(userId);
             lastRunTime = Date.now();
+            var villages = ', ';
             $.each(userTroops, function(key, value) {
                 if (value['axe'] >= 1000 && value['light'] >= 300 ) {
                     totalCount['axeAndCl'] += 1;
+                    totalCount['villagesAxeAndCl'] += key + ' ';
                 } else if (value['axe'] >= 1000 || value['light'] >= 300 ) {
                     totalCount['axeOrCl'] += 1;
+                    totalCount['villagesAxeOrCl'] += key + ' ';
                 }
             });
             UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), c + 1, usersIdsArr.length);
