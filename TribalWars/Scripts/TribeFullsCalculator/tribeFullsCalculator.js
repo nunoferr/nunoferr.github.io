@@ -73,10 +73,10 @@
         <h2 style="text-align: center;">${this.UserTranslation.title}</h2>
         <div style="margin-bottom: 30px;">
             Aldeias com 1000 vikings e 300 cl = ${totalCount['axeAndCl']}
-            </br>Aldeias: ${totalCount['villagesAxeAndCl']}
+            </br>Aldeias: ${totalCount['playersAxeAndCl']}
             </br></br>
             Aldeias só com 1000 vikings ou só com 300 cl = ${totalCount['axeOrCl']}
-            </br>Aldeias: ${totalCount['villagesAxeOrCl']}
+            </br>Aldeias: ${totalCount['playersAxeOrCl']}
         </div>
         <div style="width: calc(100% + 18px);position: absolute;left: -9px;bottom: -9px;background-image: url(https://dspt.innogamescdn.com/asset/2a2f957f/graphic/screen/tableheader_bg3.png);background-repeat: round;margin-bottom: 0px;border-radius: 0px 0 8px 8px;text-align: center;font-weight: bold;font-size: 10px;line-height: 1.2;">${this.UserTranslation.credits}</div>
         `;        
@@ -101,11 +101,11 @@
         
         
         var userIdSelectOptions = $(htmlContentContainer).find('select[name$="player_id"]').eq(0).find('option:not(:first)');
-        var usersIdsArr = [];
+        var usersIdsArr = {};
         $.each(userIdSelectOptions, function (key, value) {
-            usersIdsArr.push($(value).attr('value'));
+            usersIdsArr[$(value).text().trim()] = $(value).attr('value');
         });
-        return Array.from(usersIdsArr);
+        return usersIdsArr;
 
         function setTroopsColumnLocation(currentObj, htmlContentContainer) {
             $.each($(htmlContentContainer).find('table:last tr th:not(:first):not(:last)'), function(id, value) {
@@ -134,42 +134,55 @@
             $.each(currentObj.availableSupportUnits, function(key2, value2) {
                 villageTroops[value2] = $(value).find('td').eq(currentObj.troopsColumnLocation[value2]).text().trim();
             });
-            
             userTroopsList[/\d{3}\|\d{3}/.exec($(value).find('td a').eq(0).text())[0]] = villageTroops;
+            // villageTroops[village] = /\d{3}\|\d{3}/.exec($(value).find('td a').eq(0).text())[0];
+            // userTroopsList[$('select').find('option:selected').text().trim()] = villageTroops;
         });
         return userTroopsList;
     }
 
-    async #getTribeTroopsCounter(usersIdsArr) {
+    async #getTribeTroopsCounter() {
         var totalCount = {
             'axeAndCl' : 0,
-            'villagesAxeAndCl': '',
+            'playersAxeAndCl': '',
             'axeOrCl' : 0,
-            'villagesAxeOrCl': ''
+            'playersAxeOrCl': ''
         };
 
         var lastRunTime = 0;
-        var usersIdsArr = await this.#handleTribeMembersPage();
+        var users = await this.#handleTribeMembersPage();
         lastRunTime = Date.now();
+        var currentObj = this;
         var c = 0;
-        for (const userId of usersIdsArr) {
+        for(var key in users)
+        {
+            var value = users[key];
             await new Promise(res => setTimeout(res, Math.max(lastRunTime + 200 - Date.now(), 0))); 
-            var userTroops = await this.#handleMemberPage(userId);
+            var userTroops = await currentObj.#handleMemberPage(value);
             lastRunTime = Date.now();
-            var villages = ', ';
+            var playerAxeAndCl = '';
+            var playerAxeOrCl = '';
+
             $.each(userTroops, function(key, value) {
                 if (value['axe'] >= 1000 && value['light'] >= 300 ) {
                     totalCount['axeAndCl'] += 1;
-                    totalCount['villagesAxeAndCl'] += key + ' ';
+                    playerAxeAndCl += key + ' ';
                 } else if (value['axe'] >= 1000 || value['light'] >= 300 ) {
                     totalCount['axeOrCl'] += 1;
-                    totalCount['villagesAxeOrCl'] += key + ' ';
+                    playerAxeOrCl += key + ' ';
                 }
             });
-            UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), c + 1, usersIdsArr.length);
-            c++;
-        }
 
+            if (playerAxeAndCl != '') {
+                totalCount['playersAxeAndCl'] += key + ': ' + playerAxeAndCl + '</br></br>';
+            }
+            if (playerAxeOrCl != '') {
+                totalCount['playersAxeOrCl'] += key + ': ' + playerAxeOrCl + '</br></br>';
+            }
+            
+            UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), c + 1, Object.keys(users).length);
+            c++;
+        };
         return totalCount;
     }
 }
