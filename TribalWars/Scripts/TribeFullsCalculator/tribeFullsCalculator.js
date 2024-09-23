@@ -68,7 +68,7 @@
         UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), 0, 0);
         
         var totalCount = await this.#getTribeTroopsCounter();
-debugger;
+
         var html = `
         <h2 style="text-align: center;">${this.UserTranslation.title}</h2>
         <div style="margin-bottom: 30px;">
