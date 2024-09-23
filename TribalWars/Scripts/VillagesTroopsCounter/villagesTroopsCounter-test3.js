@@ -1,7 +1,7 @@
 /*
 * Script Name: Troop Counter Saven
 * Version: v1.1
-* Last Updated: 2024-08-23
+* Last Updated: 2024-09-12
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
