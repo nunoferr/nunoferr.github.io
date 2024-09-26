@@ -152,12 +152,20 @@
 
 	#getGroupsObj() {
 		var html = $.parseHTML(this.#fetchHtmlPage(this.#generateUrl('overview_villages', 'groups', {'type': 'static'})));
-		var groups = $(html).find('.vis_item a,strong');
-		var groupsArr = {};
-		$.each(groups, function(id, group) {
-			var val = $(group).text().trim();
-			groupsArr[group.getAttribute('data-group-id')] = val.substring(1, val.length - 1);
-		});
+		var groups = $(html).find('.vis_item').find('a,strong');
+        var groupsArr = {};
+        if ($(groups).length > 0) {
+		    $.each(groups, function(id, group) {
+			    var val = $(group).text().trim();
+			    groupsArr[group.getAttribute('data-group-id')] = val.substring(1, val.length - 1);
+		    });
+        } else { // User has more than 5 groups
+            groups = $(html).find('.vis_item select option');
+            $.each(groups, function(id, group) {
+			    groupsArr[(new URLSearchParams($(group).val())).get('group')] = $(group).text().trim();
+		    });
+        }
+		
 		return groupsArr;
 	}
 
