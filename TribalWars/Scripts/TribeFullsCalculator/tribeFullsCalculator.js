@@ -23,13 +23,13 @@
         return {
             en_US: {
                 title: 'Tribe Fulls Calculator',
-                loadingMessage: 'Loading...',
+                loadingMessage: 'Loading',
                 successMessage: 'Loaded successfully!',
                 credits: 'Tribe Villages Armys Finder script v1.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 title: 'Calculator de fulls da tribo',
-                loadingMessage: 'A carregar...',
+                loadingMessage: 'A carregar',
                 successMessage: 'Carregado com sucesso!',
                 credits: 'Procurador de exércitos em aldeias da tribo v1.0 por NunoF- (.com.pt)'
             }
@@ -260,10 +260,9 @@
 
         var users = await this.#handleTribeMembersPage();
         Dialog.close();
-        Dialog.show('import', `<h2 style="color:green;">${this.UserTranslation.loadingMessage}</h2><div id="attackTribeCalculatorLoadingBar" class="progress-bar live-progress-bar"><div style="background: rgb(146, 194, 0);"></div><span class="label" style="margin-top:0px;"></span></div>`, Dialog.close());
+        Dialog.show('import', `<h2 id="tribeArmiesLoading" style="color:green;">${this.UserTranslation.loadingMessage}</h2><div id="attackTribeCalculatorLoadingBar" class="progress-bar live-progress-bar"><div style="background: rgb(146, 194, 0);"></div><span class="label" style="margin-top:0px;"></span></div>`, Dialog.close());
         UI.InitProgressBars()
-        UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), 0, Object.keys(users).length);    
-        
+        UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), 0, Object.keys(users).length);
         lastRunTime = Date.now();
         var currentObj = this;
         var c = 0;
@@ -291,6 +290,7 @@
             if (playerArmysLine != '')  armies.armiesContent[username] = playerArmysLine;
 
             UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), c + 1, Object.keys(users).length);
+            $('#tribeArmiesLoading').text(this.UserTranslation.loadingMessage + '...'.substring(0, (c + 1) % 4));
             c++;
         };
         return armies;
