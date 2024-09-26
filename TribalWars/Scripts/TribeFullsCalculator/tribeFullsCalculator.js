@@ -281,8 +281,8 @@
         {
             var value = users[username];
             await new Promise(res => setTimeout(res, Math.max(lastRunTime + 200 - Date.now(), 0))); 
-            var userTroops = await currentObj.#handleMemberPage(value);
             lastRunTime = Date.now();
+            var userTroops = await currentObj.#handleMemberPage(value);
             var playerArmiesLine = '';
 
             $.each(userTroops, function(villageId, villageTroops) {
