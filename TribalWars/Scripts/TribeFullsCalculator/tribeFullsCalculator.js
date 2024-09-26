@@ -22,28 +22,43 @@
     static AttackTribeCalculatorTranslations() {
         return {
             en_US: {
-                title: 'Tribe Fulls Calculator',
+                title: 'Tribe Villages Armies Finder',
+                instructions: 'Find the armies of your Tribe players that match the following criteria:',
+                findButton: 'Find villages',
+                table: {
+                    player: 'Player',
+                    villages: 'Villages',
+                    total: 'Total'
+                },
                 loadingMessage: 'Loading',
                 successMessage: 'Loaded successfully!',
-                credits: 'Tribe Villages Armys Finder script v1.0 by NunoF- (.com.pt)'
+                credits: 'Tribe Villages Armies Finder script v1.0.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
-                title: 'Calculator de fulls da tribo',
+                title: 'Procurar exércitos nas aldeias da tribo',
+                instructions: 'Procurar os exército de membros da sua tribo que seguem os seguintes critérios:',
+                findButton: 'Procurar aldeias',
+                table: {
+                    player: 'Jogador',
+                    villages: 'Aldeias',
+                    total: 'Total'
+                },
                 loadingMessage: 'A carregar',
                 successMessage: 'Carregado com sucesso!',
-                credits: 'Procurador de exércitos em aldeias da tribo v1.0 por NunoF- (.com.pt)'
+                credits: 'Procurar exércitos nas aldeias da tribo v1.0.0 por NunoF- (.com.pt)'
             }
         };
     }
 
     constructor() {
         this.UserTranslation = game_data.locale in AttackTribeCalculator.AttackTribeCalculatorTranslations() ? this.UserTranslation = AttackTribeCalculator.AttackTribeCalculatorTranslations()[game_data.locale] : IncomingTribeAttacksDisplay.IncomingTribeAttacksDisplayTranslations().en_US;
-        this.UserTranslation = AttackTribeCalculator.AttackTribeCalculatorTranslations().en_US;
+        // this.UserTranslation = AttackTribeCalculator.AttackTribeCalculatorTranslations().en_US;
         this.availableSupportUnits = Object.create(game_data.units);
         this.availableSupportUnits.splice(this.availableSupportUnits.indexOf('militia'), 1);
         this.troopsColumnLocation = {};
         this.versionNumber = game_data.version.substring(0, game_data.version.indexOf(0));
         this.isMobile = $('#mobileHeader').length > 0;
+        UnitPopup.whenDataReady(function() { attackTribeCalculator.init() }); // fetch units data for units automatic translations
     }
 
     async init() {
@@ -67,19 +82,19 @@
 
         if (runFinder) {
             minimumUnitsNumbers = this.#fetchMinimumUnitsNumbers(this.availableSupportUnits);
-            armiesSection = createArmiesSection(await this.#findArmys(minimumUnitsNumbers));
+            armiesSection = createArmiesSection(this.UserTranslation, await this.#getTribeArmies(minimumUnitsNumbers));
         }
 
         var html = `
-        <div id="tribeArmysFinder">
+        <div id="tribeArmiesFinder">
             <form onsubmit="attackTribeCalculator.calculate(event);">
-            <h2>Tribe Villages Armys Finder</h2>
+            <h2>${this.UserTranslation.title}</h2>
 
-            <p>Find villages of your Tribe, by user, that have troops above the following criterias:</p>
+            <p>${this.UserTranslation.instructions}</p>
             
             ${this.#createSearchTable(minimumUnitsNumbers)}
 
-            <input type="submit" class="btn btn-default" value="Find villages">
+            <input type="submit" class="btn btn-default" value="${this.UserTranslation.findButton}">
             </form>
             ${armiesSection}
             ${createStyleElement()}
@@ -92,13 +107,13 @@
 
         if (runFinder) UI.SuccessMessage(this.UserTranslation.successMessage);
 
-        function createArmiesSection(armies) {
+        function createArmiesSection(UserTranslation, armies) {
             var html = `
             <table class="vis armiesSection">
                 <tbody>
                     <tr>
-                        <th>Player</th>
-                        <th>Villages</th>
+                        <th>${UserTranslation.table.player}</th>
+                        <th>${UserTranslation.table.villages}</th>
                     </tr>
             `;
             $.each(armies.armiesContent, function(user, villages) {
@@ -110,7 +125,7 @@
             });
             return html + `
                 <tr>
-                    <td style="font-weight: bold;">Total</td>
+                    <td style="font-weight: bold;">${UserTranslation.table.total}</td>
                     <td>${armies.armiesCount}</td>
                 </tr>
             </tbody>
@@ -120,47 +135,47 @@
         function createStyleElement() {
             return `
             <style>
-            #tribeArmysFinder {
+            #tribeArmiesFinder {
                 margin-bottom: 18px;
             }
 
-            #tribeArmysFinder h2 {
+            #tribeArmiesFinder h2 {
                 text-align: center;
             }
 
-            #tribeArmysFinder table td {
+            #tribeArmiesFinder table td {
                 background:#ecd7ac;
             }
 
-            #tribeArmysFinder .armiesSection {
+            #tribeArmiesFinder .armiesSection {
                 max-width: 700px;
                 margin-top: 10px;
             }
 
-            #tribeArmysFinder .btn {
+            #tribeArmiesFinder .btn {
                 margin-top: 10px;
             }
 
-            #tribeArmysFinder .searchTable td {
+            #tribeArmiesFinder .searchTable td {
                 white-space: nowrap;
             }
 
-            #tribeArmysFinder .searchTable .searchFieldsContainer {
+            #tribeArmiesFinder .searchTable .searchFieldsContainer {
                 display: inline-block;
                 width: calc(100% - 60px);
             }
 
-            #tribeArmysFinder .searchTable .searchFieldsContainer img {
+            #tribeArmiesFinder .searchTable .searchFieldsContainer img {
                 display: inline-block;
                 max-width:20px;
                 vertical-align: middle;
             }
 
-            #tribeArmysFinder .searchTable .searchFieldsContainer div {
+            #tribeArmiesFinder .searchTable .searchFieldsContainer div {
                 display: inline-block;
             }
 
-            #tribeArmysFinder .searchTable input {
+            #tribeArmiesFinder .searchTable input {
                 display: inline-block;    
                 width: 50px;
                 color: black;
@@ -187,13 +202,9 @@
     #fetchMinimumUnitsNumbers(availableSupportUnits) {
         var unitsNumbers = {};
         $.each(availableSupportUnits, function(key, value) {
-            unitsNumbers[value] = parseInt($(`#tribeArmysFinder-${value}`).val());
+            unitsNumbers[value] = parseInt($(`#tribeArmiesFinder-${value}`).val());
         });
         return unitsNumbers;
-    }
-
-    async #findArmys(minimumUnitsNumbers) {
-        return this.#getTribeArmys(minimumUnitsNumbers);
     }
 
     async #fetchTribeMembersPage() {
@@ -251,7 +262,7 @@
         return userTroopsList;
     }
 
-    async #getTribeArmys(unitsNumbers) {
+    async #getTribeArmies(unitsNumbers) {
         var armies = {
             armiesCount: 0,
             armiesContent: {}
@@ -272,7 +283,7 @@
             await new Promise(res => setTimeout(res, Math.max(lastRunTime + 200 - Date.now(), 0))); 
             var userTroops = await currentObj.#handleMemberPage(value);
             lastRunTime = Date.now();
-            var playerArmysLine = '';
+            var playerArmiesLine = '';
 
             $.each(userTroops, function(villageId, villageTroops) {
                 var villageMatchesCriteria = true;
@@ -283,11 +294,11 @@
 
                 if (villageMatchesCriteria) {
                     armies.armiesCount++;
-                    playerArmysLine += villageId + ' ';
+                    playerArmiesLine += villageId + ' ';
                 }
             });
 
-            if (playerArmysLine != '')  armies.armiesContent[username] = playerArmysLine;
+            if (playerArmiesLine != '')  armies.armiesContent[username] = playerArmiesLine;
 
             UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), c + 1, Object.keys(users).length);
             $('#tribeArmiesLoading').text(this.UserTranslation.loadingMessage + '...'.substring(0, (c + 1) % 4));
@@ -318,9 +329,9 @@
                 <td>
                     <div class="searchFieldsContainer">
                         <img src="https://dspt.innogamescdn.com/asset/${versionNumber}/graphic/unit/recruit/${value}.png" alt="" class="">
-                        <div>${value}</div>
+                        <div>${UnitPopup.unit_data[value].shortname}</div>
                     </div>
-                    <input type="number" id="tribeArmysFinder-${value}" min="0" step="1" value="${minimumUnitsNumbers[value] || 0}">
+                    <input type="number" id="tribeArmiesFinder-${value}" min="0" step="1" value="${minimumUnitsNumbers[value] || 0}">
                 </td>`;
                 if ((key !== 0 && (key + 1) % maxColumnLength === 0) || key === availableSupportUnits.length - 1) {
                     fieldsList += `<tr>${fieldsLine}</tr>`;
@@ -338,5 +349,4 @@
 }
 
 var attackTribeCalculator = new AttackTribeCalculator();
-attackTribeCalculator.init();
 }
