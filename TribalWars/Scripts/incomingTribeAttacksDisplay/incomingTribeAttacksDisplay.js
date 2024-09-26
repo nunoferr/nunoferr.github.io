@@ -1,5 +1,5 @@
 /*
-* Script Name: Incoming Tribe Ataques
+* Script Name: Incoming Tribe Attacks
 * Version: v1.0
 * Last Updated: 2024-09-20
 * Author: NunoF-
