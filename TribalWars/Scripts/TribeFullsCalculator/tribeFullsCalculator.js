@@ -256,12 +256,18 @@
                 line-height: 2;
             }
 
+            
+            #tribeArmiesFinder .spoiler {
+                max-width: 700px;
+            }
+            
             #tribeArmiesFinder .spoiler div {
                 background: #ecd7ac;
             }
 
-            #tribeArmiesFinder .spoiler {
-                max-width: 700px;
+            #tribeArmiesFinder .spoiler input[type="button"] {
+                white-space: normal;
+                word-wrap:break-word;
             }
 
             #tribeArmiesFinder .searchTable .unitsContainer {
@@ -408,7 +414,7 @@
         `;
         
         function fillSearchFields(availableSupportUnits, versionNumber, isMobile) {
-            var maxColumnLength = !isMobile ? availableSupportUnits.length / 2 : 3
+            var maxColumnLength = !isMobile ? availableSupportUnits.length / 2 : 2
             var fieldsList = `
                 <tr>
                     <th colspan="${maxColumnLength}">Units</th>
@@ -420,7 +426,7 @@
                 fieldsLine += `
                 <td>
                     <div class="searchCheckboxField">
-                        <input type="checkbox" style="vertical-align:${!isNaN(unitsSmallerThan[value]) ? '8px' : 'baseline'};" ${!isNaN(unitsSmallerThan[value]) ? 'checked' : ''} onclick="attackTribeCalculator.changeCheckedStatus(this);">
+                        <input type="checkbox" style="vertical-align:${!isNaN(unitsSmallerThan[value]) ? '8px' : 'baseline'};${this.isMobile ? 'width: 13px;height: 13px;' : ''}" ${!isNaN(unitsSmallerThan[value]) ? 'checked' : ''} onclick="attackTribeCalculator.changeCheckedStatus(this);">
                     </div>
                     <div class="unitsContainer">
                         <div>
