@@ -24,12 +24,14 @@
             en_US: {
                 title: 'Tribe Villages Armies Finder',
                 instructions: 'Find the armies of your Tribe players that match the following criteria:',
+                searchBoxExpandInstruictions: 'Click on the checkboxes to state that you also just want units that are smaller than a given number. Uncheck the checkbox to disabled its effect.',
                 findButton: 'Find villages',
                 table: {
                     player: 'Player',
                     villages: 'Villages',
                     total: 'Total'
                 },
+                coordinatesToImport: 'Display coordinates to import to another script',
                 loadingMessage: 'Loading',
                 successMessage: 'Loaded successfully!',
                 credits: 'Tribe Villages Armies Finder script v1.0.0 by NunoF- (.com.pt)'
@@ -37,12 +39,14 @@
             pt_PT: {
                 title: 'Procurar exércitos nas aldeias da tribo',
                 instructions: 'Procurar os exército de membros da sua tribo que seguem os seguintes critérios:',
+                searchBoxExpandInstruictions: 'Clique nas checkboxes para informar que você também quer apenas unidades que sejam menores do que um certo número. Clique novamente na checkbox para remover este efeito.',
                 findButton: 'Procurar aldeias',
                 table: {
                     player: 'Jogador',
                     villages: 'Aldeias',
                     total: 'Total'
                 },
+                coordinatesToImport: 'Mostrar coordenadas para serem importadas para outro script',
                 loadingMessage: 'A carregar',
                 successMessage: 'Carregado com sucesso!',
                 credits: 'Procurar exércitos nas aldeias da tribo v1.0.0 por NunoF- (.com.pt)'
@@ -56,7 +60,7 @@
         this.availableSupportUnits = Object.create(game_data.units);
         this.availableSupportUnits.splice(this.availableSupportUnits.indexOf('militia'), 1);
         this.troopsColumnLocation = {};
-        this.versionNumber = game_data.version.substring(0, game_data.version.indexOf(0));
+        this.versionNumber = game_data.version.substring(0, game_data.version.indexOf(' '));
         this.isMobile = $('#mobileHeader').length > 0;
         UnitPopup.whenDataReady(function() { attackTribeCalculator.init() }); // fetch units data for units automatic translations
     }
@@ -77,12 +81,14 @@
     }
 
     async #createUI(runFinder = false) {
-        var minimumUnitsNumbers = 0;
+        var unitsBiggerThan = {};
+        var unitsSmallerThan = {};
         var armiesSection = '';
 
         if (runFinder) {
-            minimumUnitsNumbers = this.#fetchMinimumUnitsNumbers(this.availableSupportUnits);
-            armiesSection = createArmiesSection(this.UserTranslation, await this.#getTribeArmies(minimumUnitsNumbers));
+            unitsBiggerThan = this.#fetchUnitsBiggerOrSmallerThan(this.availableSupportUnits, true);
+            unitsSmallerThan = this.#fetchUnitsBiggerOrSmallerThan(this.availableSupportUnits, false)
+            armiesSection = createArmiesSection(this.UserTranslation, await this.#getTribeArmies(unitsBiggerThan, unitsSmallerThan));
         }
 
         var html = `
@@ -91,8 +97,9 @@
             <h2>${this.UserTranslation.title}</h2>
 
             <p>${this.UserTranslation.instructions}</p>
+            <p class="searchBoxInstructions">${this.UserTranslation.searchBoxExpandInstruictions}</p>
             
-            ${this.#createSearchTable(minimumUnitsNumbers)}
+            ${this.#createSearchTable(unitsBiggerThan, unitsSmallerThan)}
 
             <input type="submit" class="btn btn-default" value="${this.UserTranslation.findButton}">
             </form>
@@ -104,7 +111,10 @@
         Dialog.show('import', html, Dialog.close());
 
         $('#popup_box_import').css('width', 'unset');
-
+        setTimeout(() => {
+            $('#tribeArmiesFinder .searchTable').css('width', '+=18px');
+        }, 100);
+        
         if (runFinder) UI.SuccessMessage(this.UserTranslation.successMessage);
 
         function createArmiesSection(UserTranslation, armies) {
@@ -116,20 +126,46 @@
                         <th>${UserTranslation.table.villages}</th>
                     </tr>
             `;
-            $.each(armies.armiesContent, function(user, villages) {
+            $.each(armies.armiesContent, function(username, content) {
                 html += `
                 <tr>
-                    <td>${user}</td>
-                    <td>${villages}</td>
+                    <td><a href="/game.php?screen=info_player&id=${content.playerId}" target="_self">${username}</a></td>
+                    <td>${printPlayerVillages(content.villages)}</td>
                 </tr>`;
             });
             return html + `
                 <tr>
-                    <td style="font-weight: bold;">${UserTranslation.table.total}</td>
+                    <td>${UserTranslation.table.total}</td>
                     <td>${armies.armiesCount}</td>
                 </tr>
             </tbody>
-        </table>`;
+        </table>
+        ${createVillageCoordsSpoiler(armies.armiesContent, UserTranslation.coordinatesToImport)}`;
+
+            function printPlayerVillages(villages) {
+                var html = '';
+                $.each(villages, function(villageId, villageCoords) {
+                    html += `<a target="_self" href="/game.php?screen=info_village&id=${villageId}">${villageCoords}</a> `;
+                });
+                return html;
+            }
+        }
+
+        function createVillageCoordsSpoiler(content, coordinatesToImport) {
+            var villagesHtml = '';
+            $.each(content, function(id, cont) {
+                $.each(cont.villages, function(villageId, villageCoords) {
+                    villagesHtml += villageCoords + ' ';
+                });
+            });
+            return `
+            <div class="spoiler">
+                <input type="button" class="btn" value="${coordinatesToImport}" onclick="toggle_spoiler(this)">
+                <div>
+                    <span style="display:none">${villagesHtml}</span>
+                </div>
+            </div>
+            `;
         }
 
         function createStyleElement() {
@@ -141,6 +177,10 @@
 
             #tribeArmiesFinder h2 {
                 text-align: center;
+            }
+
+            #tribeArmiesFinder .searchBoxInstructions {
+                font-size: 9px;
             }
 
             #tribeArmiesFinder table td {
@@ -160,6 +200,15 @@
                 white-space: nowrap;
             }
 
+            .searchCheckboxField {
+                display: inline-block;
+                width: 23px;
+            }
+
+            .searchCheckboxField input[type="checkbox"] {
+                width: unset;
+            }
+            
             #tribeArmiesFinder .searchTable .searchFieldsContainer {
                 display: inline-block;
                 width: calc(100% - 60px);
@@ -167,7 +216,7 @@
 
             #tribeArmiesFinder .searchTable .searchFieldsContainer img {
                 display: inline-block;
-                max-width:20px;
+                max-width: 20px;
                 vertical-align: middle;
             }
 
@@ -175,13 +224,17 @@
                 display: inline-block;
             }
 
-            #tribeArmiesFinder .searchTable input {
+            #tribeArmiesFinder .searchTable input[type="number"] {
                 display: inline-block;    
                 width: 50px;
                 color: black;
             }
 
-            .creditsSection {
+            #tribeArmiesFinder .searchTable tr:last td:first {
+                font-weight: bold;
+            }
+            
+            .popup_box_content .creditsSection {
                 width: calc(100% + 18px);
                 position: absolute;
                 left: -9px;bottom: -9px;
@@ -194,15 +247,32 @@
                 font-size: 10px;
                 line-height: 2;
             }
+
+            #tribeArmiesFinder .spoiler div {
+                background: #ecd7ac;
+            }
+
+            #tribeArmiesFinder .spoiler {
+                max-width: 700px;
+            }
+
+            #tribeArmiesFinder .searchTable .unitsContainer {
+                display: inline-block;
+                width: calc(100% - 31px);
+            }
+
+            #tribeArmiesFinder .searchTable .div:first {
+                display: block;
+            }
             </style>
             `;
         }
     }
 
-    #fetchMinimumUnitsNumbers(availableSupportUnits) {
+    #fetchUnitsBiggerOrSmallerThan(availableSupportUnits, isBigger = true) {
         var unitsNumbers = {};
         $.each(availableSupportUnits, function(key, value) {
-            unitsNumbers[value] = parseInt($(`#tribeArmiesFinder-${value}`).val());
+            unitsNumbers[value] = parseInt($(`#tribeArmiesFinder-${isBigger ? 'bigger' : 'smaller'}-${value}`).val());
         });
         return unitsNumbers;
     }
@@ -257,15 +327,19 @@
             $.each(currentObj.availableSupportUnits, function(key2, value2) {
                 villageTroops[value2] = $(value).find('td').eq(currentObj.troopsColumnLocation[value2]).text().trim();
             });
+            villageTroops['villageId'] = (new URLSearchParams($(value).find('td a').attr('href'))).get('id');
             userTroopsList[/\d{3}\|\d{3}/.exec($(value).find('td a').eq(0).text())[0]] = villageTroops;
         });
         return userTroopsList;
     }
 
-    async #getTribeArmies(unitsNumbers) {
+    async #getTribeArmies(unitsBiggerThan, unitsSmallerThan) {
         var armies = {
             armiesCount: 0,
-            armiesContent: {}
+            armiesContent: {
+                // playerId: '',
+                // villages: {}
+            }
         };
         var lastRunTime = 0;
 
@@ -276,29 +350,34 @@
         UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), 0, Object.keys(users).length);
         lastRunTime = Date.now();
         var currentObj = this;
+        var availableSupportUnits = this.availableSupportUnits;
         var c = 0;
         for(var username in users)
         {
-            var value = users[username];
+            var userId = users[username];
             await new Promise(res => setTimeout(res, Math.max(lastRunTime + 200 - Date.now(), 0))); 
             lastRunTime = Date.now();
-            var userTroops = await currentObj.#handleMemberPage(value);
-            var playerArmiesLine = '';
+            var userTroops = await currentObj.#handleMemberPage(userId);
+            var playerVillages = {};
 
-            $.each(userTroops, function(villageId, villageTroops) {
+            $.each(userTroops, function(villageCoords, villageTroops) {
                 var villageMatchesCriteria = true;
-                $.each(unitsNumbers, function(unit, val) {
-                    if (isNaN(val)) return true; // same as continue;   | false would be break
-                    if (villageTroops[unit] < val) villageMatchesCriteria = false;
+                $.each(availableSupportUnits, function(index, unit) {
+                    if (!isNaN(unitsBiggerThan[unit]) && villageTroops[unit] < unitsBiggerThan[unit]) villageMatchesCriteria = false;
+                    if (!isNaN(unitsSmallerThan[unit]) && villageTroops[unit] > unitsSmallerThan[unit]) villageMatchesCriteria = false;
                 });
 
                 if (villageMatchesCriteria) {
                     armies.armiesCount++;
-                    playerArmiesLine += villageId + ' ';
+                    playerVillages[villageTroops['villageId']] = villageCoords;
                 }
             });
-
-            if (playerArmiesLine != '')  armies.armiesContent[username] = playerArmiesLine;
+            if (Object.keys(playerVillages).length > 0) {
+                armies.armiesContent[username] = {
+                    villages: playerVillages,
+                    playerId: userId
+                };
+            }
 
             UI.updateProgressBar($('#attackTribeCalculatorLoadingBar'), c + 1, Object.keys(users).length);
             $('#tribeArmiesLoading').text(this.UserTranslation.loadingMessage + '...'.substring(0, (c + 1) % 4));
@@ -307,13 +386,15 @@
         return armies;
     }
 
-    #createSearchTable(minimumUnitsNumbers) {
+    #createSearchTable(unitsBiggerThan, unitsSmallerThan) {
         return `
         <table class="vis searchTable">
             <tbody>
                 ${fillSearchFields(this.availableSupportUnits, this.versionNumber, this.isMobile)}
             </tbody>
-        </table><div style="clear: both;"></div>`;
+        </table>
+        <div style="clear: both;"></div>
+        `;
         
         function fillSearchFields(availableSupportUnits, versionNumber, isMobile) {
             var maxColumnLength = !isMobile ? availableSupportUnits.length / 2 : 3
@@ -327,11 +408,25 @@
             $.each(availableSupportUnits, function(key, value) {
                 fieldsLine += `
                 <td>
-                    <div class="searchFieldsContainer">
-                        <img src="https://dspt.innogamescdn.com/asset/${versionNumber}/graphic/unit/recruit/${value}.png" alt="" class="">
-                        <div>${UnitPopup.unit_data[value].shortname}</div>
+                    <div class="searchCheckboxField">
+                        <input type="checkbox" style="vertical-align:${!isNaN(unitsSmallerThan[value]) ? '8px' : 'baseline'};" ${!isNaN(unitsSmallerThan[value]) ? 'checked' : ''} onclick="attackTribeCalculator.changeCheckedStatus(this);">
                     </div>
-                    <input type="number" id="tribeArmiesFinder-${value}" min="0" step="1" value="${minimumUnitsNumbers[value] || 0}">
+                    <div class="unitsContainer">
+                        <div>
+                            <div class="searchFieldsContainer">
+                                <img src="https://dspt.innogamescdn.com/asset/${versionNumber}/graphic/unit/recruit/${value}.png" alt="" class="">
+                                <div>${UnitPopup.unit_data[value].shortname} ≥</div>
+                            </div>
+                            <input type="number" id="tribeArmiesFinder-bigger-${value}" min="0" step="1" value="${unitsBiggerThan[value] || 0}">
+                        </div>
+                        <div class="tribeVillagesArmiesSmallerThan" style="display:${!isNaN(unitsSmallerThan[value]) ? 'block' : 'none'};">
+                            <div class="searchFieldsContainer">
+                                <img src="https://dspt.innogamescdn.com/asset/${versionNumber}/graphic/unit/recruit/${value}.png" alt="" class="">
+                                <div>${UnitPopup.unit_data[value].shortname} ≤</div>
+                            </div>
+                            <input type="number" id="tribeArmiesFinder-smaller-${value}" min="0" step="1" value="${unitsSmallerThan[value]}">
+                        </div>
+                    </div>
                 </td>`;
                 if ((key !== 0 && (key + 1) % maxColumnLength === 0) || key === availableSupportUnits.length - 1) {
                     fieldsList += `<tr>${fieldsLine}</tr>`;
@@ -345,6 +440,13 @@
     async calculate(event) {
         event.preventDefault();
         this.#createUI(true);
+    }
+
+    changeCheckedStatus(checkbox) {
+        var smallerThanSec = $(checkbox).parent().parent().find('.tribeVillagesArmiesSmallerThan');
+        $(smallerThanSec).css('display', smallerThanSec.css('display') === 'none' ? 'block' : 'none');
+        $(checkbox).css('vertical-align', $(checkbox).css('vertical-align') === 'baseline' ? '8px' : 'baseline');
+        if (!$(checkbox).attr('checked')) $(smallerThanSec).find('input').val(null);
     }
 }
 
