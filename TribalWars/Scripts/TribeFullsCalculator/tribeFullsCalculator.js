@@ -115,7 +115,6 @@
         $('#popup_box_import').css('width', 'unset');
         setTimeout(() => {
             $('#tribeArmiesFinder .searchTable').css('width', '+=18px');
-        }, 100);
         }, 300);
         
         if (runFinder) UI.SuccessMessage(this.UserTranslation.successMessage);
