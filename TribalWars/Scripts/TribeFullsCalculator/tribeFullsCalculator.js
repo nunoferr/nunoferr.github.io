@@ -382,6 +382,8 @@
                     playerVillages[villageTroops['villageId']] = villageCoords;
                 }
             });
+            
+            if (Object.keys(playerVillages).length > 0 || userTroops === false) {
                 armies.armiesContent[username] = {
                     villages: playerVillages,
                     playerId: userId
