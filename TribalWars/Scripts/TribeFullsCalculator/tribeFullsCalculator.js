@@ -34,6 +34,7 @@
                 coordinatesToImport: 'Display coordinates to import to another script',
                 loadingMessage: 'Loading',
                 successMessage: 'Loaded successfully!',
+                errorMessageNoVillagesFound: 'This player either does not have any villages or does not have the "Share owned troops" setting enabled.',
                 credits: 'Tribe Villages Armies Finder script v1.0.0 by NunoF- (.com.pt)'
             },
             pt_PT: {
@@ -49,6 +50,7 @@
                 coordinatesToImport: 'Mostrar coordenadas para serem importadas para outro script',
                 loadingMessage: 'A carregar',
                 successMessage: 'Carregado com sucesso!',
+                errorMessageNoVillagesFound: 'Este jogador ou não tem aldeias ou não tem a definição de "Partilhar tropas próprias" ativa.',
                 credits: 'Procurar exércitos nas aldeias da tribo v1.0.0 por NunoF- (.com.pt)'
             }
         };
@@ -130,7 +132,7 @@
                 html += `
                 <tr>
                     <td><a href="/game.php?screen=info_player&id=${content.playerId}" target="_self">${username}</a></td>
-                    <td>${printPlayerVillages(content.villages)}</td>
+                    <td class="${Object.keys(content.villages).length === 0 ? 'errorMessage' : ''}">${Object.keys(content.villages).length > 0 ? printPlayerVillages(content.villages) : UserTranslation.errorMessageNoVillagesFound}</td>
                 </tr>`;
             });
             return html + `
@@ -190,6 +192,12 @@
             #tribeArmiesFinder .armiesSection {
                 max-width: 700px;
                 margin-top: 10px;
+            }
+
+            #tribeArmiesFinder .armiesSection .errorMessage {
+                background: #f00;
+                color: white;
+                font-weight: bold;
             }
 
             #tribeArmiesFinder .btn {
@@ -320,6 +328,8 @@
         var pageContent = await this.#fetchTribeUserTroopsPage(userId);
         var contentContainer = !(this.isMobile) ? 'contentContainer' : 'content_value';
         var troopsUserPageLines = $(pageContent).find(`#${contentContainer} table:last tr`);
+        if ($(troopsUserPageLines).eq(1).find('td:eq(1)').filter(function() {return $(this).text().trim() === '?'}).length > 0) return false;
+
         var userTroopsList = {};
         var currentObj = this;
         $.each(troopsUserPageLines.slice(1), function (key, value) {
@@ -360,7 +370,7 @@
             var userTroops = await currentObj.#handleMemberPage(userId);
             var playerVillages = {};
 
-            $.each(userTroops, function(villageCoords, villageTroops) {
+            $.each(userTroops, function(villageCoords, villageTroops) { // If userTroops is false, foreach is automatically skipped
                 var villageMatchesCriteria = true;
                 $.each(availableSupportUnits, function(index, unit) {
                     if (!isNaN(unitsBiggerThan[unit]) && villageTroops[unit] < unitsBiggerThan[unit]) villageMatchesCriteria = false;
@@ -372,7 +382,6 @@
                     playerVillages[villageTroops['villageId']] = villageCoords;
                 }
             });
-            if (Object.keys(playerVillages).length > 0) {
                 armies.armiesContent[username] = {
                     villages: playerVillages,
                     playerId: userId
