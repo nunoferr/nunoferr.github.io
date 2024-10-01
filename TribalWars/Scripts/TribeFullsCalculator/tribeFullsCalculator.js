@@ -94,7 +94,7 @@
         }
 
         var html = `
-        <div id="tribeArmiesFinder">
+        <div id="tribeArmiesFinder" class="${this.isMobile ? 'mobile-app' : ''}">
             <form onsubmit="attackTribeCalculator.calculate(event);">
             <h2>${this.UserTranslation.title}</h2>
 
@@ -215,6 +215,14 @@
 
             .searchCheckboxField input[type="checkbox"] {
                 width: unset;
+            }
+
+            .mobile-app .searchCheckboxField input[type="checkbox"] {
+                width: 17px;
+                height: 17px;
+                margin-left: 3px;
+                vertical-align: middle;
+                text-align: center;
             }
             
             #tribeArmiesFinder .searchTable .searchFieldsContainer {
@@ -426,7 +434,7 @@
                 fieldsLine += `
                 <td>
                     <div class="searchCheckboxField">
-                        <input type="checkbox" style="vertical-align:${!isNaN(unitsSmallerThan[value]) ? '8px' : 'baseline'};${this.isMobile ? 'width: 13px;height: 13px;' : ''}" ${!isNaN(unitsSmallerThan[value]) ? 'checked' : ''} onclick="attackTribeCalculator.changeCheckedStatus(this);">
+                        <input type="checkbox" style="vertical-align:${!isNaN(unitsSmallerThan[value]) ? '8px' : !isMobile ? 'baseline' : 'middle'};${this.isMobile ? 'width: 13px;height: 13px;' : ''}" ${!isNaN(unitsSmallerThan[value]) ? 'checked' : ''} onclick="attackTribeCalculator.changeCheckedStatus(this);">
                     </div>
                     <div class="unitsContainer">
                         <div>
@@ -462,7 +470,7 @@
     changeCheckedStatus(checkbox) {
         var smallerThanSec = $(checkbox).parent().parent().find('.tribeVillagesArmiesSmallerThan');
         $(smallerThanSec).css('display', smallerThanSec.css('display') === 'none' ? 'block' : 'none');
-        $(checkbox).css('vertical-align', $(checkbox).css('vertical-align') === 'baseline' ? '8px' : 'baseline');
+        $(checkbox).css('vertical-align', smallerThanSec.css('display') === 'block' ? '8px' : !this.isMobile ? 'baseline' : 'middle');
         if (!$(checkbox).attr('checked')) $(smallerThanSec).find('input').val(null);
     }
 }
