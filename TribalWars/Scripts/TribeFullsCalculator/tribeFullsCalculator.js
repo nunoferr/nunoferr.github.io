@@ -83,30 +83,30 @@
     }
 
     async #createUI(runFinder = false) {
-        var unitsBiggerThan = {};
-        var unitsSmallerThan = {};
+        var unitsFormValues = this.#initFormValues();
         var armiesSection = '';
 
         if (runFinder) {
-            unitsBiggerThan = this.#fetchUnitsBiggerOrSmallerThan(this.availableSupportUnits, true);
-            unitsSmallerThan = this.#fetchUnitsBiggerOrSmallerThan(this.availableSupportUnits, false)
-            armiesSection = createArmiesSection(this.UserTranslation, await this.#getTribeArmies(unitsBiggerThan, unitsSmallerThan));
+            unitsFormValues = this.#fetchUnitsFormValues(unitsFormValues);
+            armiesSection = createArmiesSection(this.UserTranslation, await this.#getTribeArmies(unitsFormValues));
         }
 
         var html = `
         <div id="tribeArmiesFinder" class="${this.isMobile ? 'mobile-app' : ''}">
             <form onsubmit="attackTribeCalculator.calculate(event);">
-            <h2>${this.UserTranslation.title}</h2>
+                <h2>${this.UserTranslation.title}</h2>
 
-            <p>${this.UserTranslation.instructions}</p>
-            <p class="searchBoxInstructions">${this.UserTranslation.searchBoxExpandInstruictions}</p>
-            
-            ${this.#createSearchTable(unitsBiggerThan, unitsSmallerThan)}
+                <p>${this.UserTranslation.instructions}</p>
+                <p class="searchBoxInstructions">${this.UserTranslation.searchBoxExpandInstruictions}</p>
+                
+                ${this.#createSearchTable(unitsFormValues)}
 
-            <input type="submit" class="btn btn-default" value="${this.UserTranslation.findButton}">
+                <input type="submit" class="btn btn-default" value="${this.UserTranslation.findButton}">
+                
+                ${this.#createGroupsSection()}
+                ${armiesSection}
+                ${createStyleElement()}
             </form>
-            ${armiesSection}
-            ${createStyleElement()}
         </div>
         <div class="creditsSection">${this.UserTranslation.credits}</div>
         `;
@@ -185,7 +185,7 @@
                 font-size: 9px;
             }
 
-            #tribeArmiesFinder table td {
+            #popup_box_import table td, #popup_box_GroupsUI table td {
                 background:#ecd7ac;
             }
 
@@ -291,12 +291,25 @@
         }
     }
 
-    #fetchUnitsBiggerOrSmallerThan(availableSupportUnits, isBigger = true) {
-        var unitsNumbers = {};
-        $.each(availableSupportUnits, function(key, value) {
-            unitsNumbers[value] = parseInt($(`#tribeArmiesFinder-${isBigger ? 'bigger' : 'smaller'}-${value}`).val());
+    #initFormValues() {
+        var formValues = {};
+        $.each(this.availableSupportUnits, function(key, value) {
+            formValues[value] = {
+                'bigger': NaN,
+                'smaller': NaN
+            };
         });
-        return unitsNumbers;
+        return formValues;
+    }
+
+    #fetchUnitsFormValues(unitsFormValues) {
+        $.each(this.availableSupportUnits, function(key, value) {
+            unitsFormValues[value] = {
+                'bigger': parseInt($(`#tribeArmiesFinder-bigger-${value}`).val()) || 0,
+                'smaller': parseInt($(`#tribeArmiesFinder-smaller-${value}`).val())
+            };
+        });
+        return unitsFormValues;
     }
 
     async #fetchTribeMembersPage() {
@@ -357,7 +370,7 @@
         return userTroopsList;
     }
 
-    async #getTribeArmies(unitsBiggerThan, unitsSmallerThan) {
+    async #getTribeArmies(unitsFormValues) {
         var armies = {
             armiesCount: 0,
             armiesContent: {
@@ -387,8 +400,8 @@
             $.each(userTroops, function(villageCoords, villageTroops) { // If userTroops is false, foreach is automatically skipped
                 var villageMatchesCriteria = true;
                 $.each(availableSupportUnits, function(index, unit) {
-                    if (!isNaN(unitsBiggerThan[unit]) && villageTroops[unit] < unitsBiggerThan[unit]) villageMatchesCriteria = false;
-                    if (!isNaN(unitsSmallerThan[unit]) && villageTroops[unit] > unitsSmallerThan[unit]) villageMatchesCriteria = false;
+                    if (!isNaN(unitsFormValues[unit]['bigger']) && villageTroops[unit] < unitsFormValues[unit]['bigger']) villageMatchesCriteria = false;
+                    if (!isNaN(unitsFormValues[unit]['smaller']) && villageTroops[unit] > unitsFormValues[unit]['smaller']) villageMatchesCriteria = false;
                 });
 
                 if (villageMatchesCriteria) {
@@ -411,17 +424,17 @@
         return armies;
     }
 
-    #createSearchTable(unitsBiggerThan, unitsSmallerThan) {
+    #createSearchTable(unitsFormValues) {
         return `
         <table class="vis searchTable">
             <tbody>
-                ${fillSearchFields(this.availableSupportUnits, this.versionNumber, this.isMobile)}
+                ${fillSearchFields(this.availableSupportUnits, this.versionNumber, this.isMobile, unitsFormValues)}
             </tbody>
         </table>
         <div style="clear: both;"></div>
         `;
         
-        function fillSearchFields(availableSupportUnits, versionNumber, isMobile) {
+        function fillSearchFields(availableSupportUnits, versionNumber, isMobile, unitsFormValues) {
             var maxColumnLength = !isMobile ? availableSupportUnits.length / 2 : 2
             var fieldsList = `
                 <tr>
@@ -434,7 +447,7 @@
                 fieldsLine += `
                 <td>
                     <div class="searchCheckboxField">
-                        <input type="checkbox" style="vertical-align:${!isNaN(unitsSmallerThan[value]) ? '8px' : !isMobile ? 'baseline' : 'middle'};${this.isMobile ? 'width: 13px;height: 13px;' : ''}" ${!isNaN(unitsSmallerThan[value]) ? 'checked' : ''} onclick="attackTribeCalculator.changeCheckedStatus(this);">
+                        <input type="checkbox" style="vertical-align:${!isNaN(unitsFormValues[value]['smaller']) ? '8px' : !isMobile ? 'baseline' : 'middle'};${this.isMobile ? 'width: 13px;height: 13px;' : ''}" ${!isNaN(unitsFormValues[value]['smaller']) ? 'checked' : ''} onclick="attackTribeCalculator.changeCheckedStatus(this);">
                     </div>
                     <div class="unitsContainer">
                         <div>
@@ -442,14 +455,14 @@
                                 <img src="https://dspt.innogamescdn.com/asset/${versionNumber}/graphic/unit/recruit/${value}.png" alt="" class="">
                                 <div>${UnitPopup.unit_data[value].shortname} ≥</div>
                             </div>
-                            <input type="number" id="tribeArmiesFinder-bigger-${value}" min="0" step="1" value="${unitsBiggerThan[value] || 0}">
+                            <input type="number" id="tribeArmiesFinder-bigger-${value}" min="0" step="1" value="${unitsFormValues[value]['bigger'] || 0}">
                         </div>
-                        <div class="tribeVillagesArmiesSmallerThan" style="display:${!isNaN(unitsSmallerThan[value]) ? 'block' : 'none'};">
+                        <div class="tribeVillagesArmiesSmallerThan" style="display:${!isNaN(unitsFormValues[value]['smaller']) ? 'block' : 'none'};">
                             <div class="searchFieldsContainer">
                                 <img src="https://dspt.innogamescdn.com/asset/${versionNumber}/graphic/unit/recruit/${value}.png" alt="" class="">
                                 <div>${UnitPopup.unit_data[value].shortname} ≤</div>
                             </div>
-                            <input type="number" id="tribeArmiesFinder-smaller-${value}" min="0" step="1" value="${unitsSmallerThan[value]}">
+                            <input type="number" id="tribeArmiesFinder-smaller-${value}" min="0" step="1" value="${unitsFormValues[value]['smaller']}">
                         </div>
                     </div>
                 </td>`;
@@ -472,6 +485,148 @@
         $(smallerThanSec).css('display', smallerThanSec.css('display') === 'none' ? 'block' : 'none');
         $(checkbox).css('vertical-align', smallerThanSec.css('display') === 'block' ? '8px' : !this.isMobile ? 'baseline' : 'middle');
         if (!$(checkbox).attr('checked')) $(smallerThanSec).find('input').val(null);
+    }
+
+    
+    #getStoredArmiesGroups() {
+        var tribeArmiesGroups = {};
+        var storageVal = localStorage.getItem('tribeArmiesGroups');
+        if (storageVal !== null) tribeArmiesGroups = JSON.parse(storageVal);
+        return tribeArmiesGroups;
+    }
+    
+    #storeStoredArmiesGroups(tribeArmiesGroups) {
+        localStorage.setItem('tribeArmiesGroups', JSON.stringify(tribeArmiesGroups));
+    }
+
+    #createGroupsSection() {
+        return `
+        <div id="groupsSection" style="border: 1px solid #7d510f;display: block;width: 291px;margin-top:10px;padding:5px;background: transparent url(https://dspt.innogamescdn.com/asset/86f7f6ca/graphic/index/iconbar-mc.png) scroll left top repeat;">
+            <h3 style="margin: 0;line-height: 1;padding: 0;">Groups</h3>
+            <h4 style="margin: 15px 0 0 0;line-height: 1;padding: 0;">Create new group</h4>
+            <span style="font-size: 9px;font-style: italic;">(or fill with a new name if renaming a current group)</span></br>
+            <input type="text" id="newGroupName" placeholder="New group name">
+            <input type="button" style="margin-top: 10px;" class="btn evt-confirm-btn btn-confirm-yes" value="Create group with current troops" onclick="attackTribeCalculator.createNewGroup()">
+            <h4 style="margin: 15px 0 5px 0;line-height: 1;padding: 0;">Select group</h4>
+            ${initEditGroupsSection(this.#getStoredArmiesGroups())}
+            </br>
+            <input type="button" class="btn btn-default" style="background: #4040f7;" value="Edit group with current troops" onclick="attackTribeCalculator.editGroup()">
+            <input type="button" class="btn btn-default" value="Delete group" onclick="attackTribeCalculator.deleteGroup()">
+        </div>
+        `;
+
+        function initEditGroupsSection(tribeArmiesGroups) {
+            var html = '<option selected default="true">No group selected</option>';
+            $.each(tribeArmiesGroups, function(key, value) {
+                html += `<option value="${key}">${key}</option>`;
+            });
+            html = `<select id="tribeArmiesGroupsSelect" style="width: 135px;" onchange="attackTribeCalculator.fillArmies()">${html}</select>`;
+            return html;
+        }
+    }
+
+    fillArmies() {
+        var selected = $('#tribeArmiesFinder #groupsSection #tribeArmiesGroupsSelect').find(":selected");
+
+        if ($(selected).attr('default') === 'true') {
+            fillForm(this.#initFormValues());
+            return;
+        } 
+        
+        fillForm(this.#getStoredArmiesGroups()[$(selected).val()]);
+        UI.InfoMessage('Group loaded.');
+        
+        function fillForm(formValues) {
+            $.each(formValues, function(key, value) {
+                var smallerFieled = $(`#tribeArmiesFinder-smaller-${key}`);
+                $(`#tribeArmiesFinder-bigger-${key}`).val(value.bigger);
+                smallerFieled.val(value.smaller);
+
+                var checkbox = smallerFieled.parent().parent().parent().find('.searchCheckboxField input');
+                if (value.smaller !== null) {
+                    smallerFieled.parent().css('display', 'block'); 
+                    $(checkbox).css('vertical-align', '8px');
+                    $(checkbox).attr('checked', 'true');
+                } else {
+                    smallerFieled.parent().css('display', 'none');
+                    $(checkbox).css('vertical-align', !this.isMobile ? 'baseline' : 'middle');
+                    $(checkbox).removeAttr('checked');
+                }
+            });
+        }
+    }
+
+    createNewGroup(updatingGroup = false) {
+        var newGroupName = $('#tribeArmiesFinder #groupsSection #newGroupName').val().trim();
+        if ((newGroupName.length === 0 || newGroupName === 'No group selected')) {
+            UI.ErrorMessage('Please give the group a name');
+            return;
+        }
+
+        var tribeArmiesGroups = this.#getStoredArmiesGroups();
+        if (tribeArmiesGroups.hasOwnProperty(newGroupName)) {
+            UI.ErrorMessage('A group with this name already exists, please choose a different name.');
+            return;
+        }
+        
+        tribeArmiesGroups[newGroupName.trim()] = this.#fetchUnitsFormValues(this.#initFormValues());
+        this.#storeStoredArmiesGroups(tribeArmiesGroups);
+        UI.SuccessMessage(!updatingGroup ? 'Group successfully created.' : 'Group successfully edited!');
+        this.#createUI();
+    }
+
+    editGroup() {
+        var selected = $('#tribeArmiesFinder #groupsSection #tribeArmiesGroupsSelect').find(":selected");
+
+        if ($(selected).attr('default') === 'true') {
+            UI.ErrorMessage('Please select a group to edit.');
+            return;
+        }
+
+        var tribeArmiesGroups = this.#getStoredArmiesGroups();
+
+        var newName = $('#tribeArmiesFinder #groupsSection #newGroupName').val();
+        var groupNameChange = false;
+        if (newName.trim().length > 0 && selected.val().trim() !== newName) { // name is changing
+            if (tribeArmiesGroups.hasOwnProperty(newName)) {
+                UI.ErrorMessage('A group with this name already exists, please choose a different name.');
+                return;
+            }
+            groupNameChange = true;
+        } else {
+            $('#tribeArmiesFinder #groupsSection #newGroupName').val(selected.val().trim());
+        }
+
+        var currentObj = this;
+        UI.addConfirmBox(`Are you sure that you want to edit the <strong>${$(selected).val()}</strong> group?
+        ${!groupNameChange ? '' : `</br>Keep in mind the group name will be changed to <strong>${newName}</strong>`}`, function() {
+            currentObj.deleteGroup(true);
+            currentObj.createNewGroup(true);
+        });
+    }
+
+    deleteGroup(bypassConfirmationBox = false) {
+        var selected = $('#tribeArmiesFinder #groupsSection #tribeArmiesGroupsSelect').find(":selected");
+        var currentObj = this;
+        if ($(selected).attr('default') === 'true') {
+            UI.ErrorMessage('Please select a group to delete.');
+            return;
+        }
+        if (!bypassConfirmationBox) {
+            UI.addConfirmBox(`Are you sure that you want to delete the ${$(selected).val()} group?`, deleteGroupById);
+        } else {
+            deleteGroupById(null);
+        }
+
+        function deleteGroupById(e) {
+            var tribeArmiesGroups = currentObj.#getStoredArmiesGroups();
+            delete tribeArmiesGroups[$(selected).val()];
+            currentObj.#storeStoredArmiesGroups(tribeArmiesGroups);
+            if (!bypassConfirmationBox) {
+                UI.SuccessMessage('Group successfully deleted.');
+                currentObj.#createUI();
+            }
+        }
     }
 }
 
