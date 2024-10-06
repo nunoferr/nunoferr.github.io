@@ -135,7 +135,7 @@
         
             var htmlContent = "<html><head>" + styles + "</head><body>" + divContent + "</body></html>";
         
-            a.download = `villagesTroops${formatDate(new Date())}.html`;
+            a.download = `villagesTroops-defense-${formatDate(new Date())}.html`;
             a.href = "data:text/html;charset=utf-8," + encodeURIComponent(htmlContent);
             a.innerHTML = "[Export content]";
             document.getElementById("tribeArmiesFinder").parentNode.prepend(a);

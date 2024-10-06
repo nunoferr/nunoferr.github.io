@@ -135,7 +135,7 @@
         
             var htmlContent = "<html><head>" + styles + "</head><body class=\"desktop  scrollableMenu  has-pa\">" + divContent + "</body></html>";
         
-            a.download = `villagesTroops${formatDate(new Date())}.html`;
+            a.download = `villagesTroops-fromvillage-${formatDate(new Date())}.html`;
             a.href = "data:text/html;charset=utf-8," + encodeURIComponent(htmlContent);
             a.innerHTML = "[Export content]";
             document.getElementById("tribeArmiesFinder").parentNode.prepend(a);
