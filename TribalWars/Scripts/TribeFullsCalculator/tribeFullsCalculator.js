@@ -295,7 +295,7 @@
         var formValues = {};
         $.each(this.availableSupportUnits, function(key, value) {
             formValues[value] = {
-                'bigger': NaN,
+                'bigger': 0,
                 'smaller': NaN
             };
         });
@@ -543,7 +543,7 @@
                 smallerFieled.val(value.smaller);
 
                 var checkbox = smallerFieled.parent().parent().parent().find('.searchCheckboxField input');
-                if (value.smaller !== null) {
+                if (value.smaller !== null && !isNaN(value.smaller)) {
                     smallerFieled.parent().css('display', 'block'); 
                     $(checkbox).css('vertical-align', '8px');
                     $(checkbox).attr('checked', 'true');
