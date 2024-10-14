@@ -22,11 +22,11 @@
     static BBCodeSOSFormatterTranslations = {
         en_US: {
             bbCodeWindow: {
-                title: 'BBCode (SOS) formatter for Discord',
+                title: 'BBCode (SOS) Formatter for Discord',
                 instruction: 'Insert the BBCode here...',
                 generate: 'Format',
                 cancel: 'Cancel',
-                credits: 'BBCode SOS Formatter for Discord v1.0.0 by NunoF- (.com.pt)'
+                credits: 'BBCode (SOS) Formatter for Discord v1.0.0 by NunoF- (.com.pt)'
             },
             textContent: {
                 villageForSnipe: 'Village for snipe X',
@@ -39,7 +39,7 @@
                 instruction: 'Inserir o BBCode aqui...',
                 generate: 'Formatar',
                 cancel: 'Cancelar',
-                credits: 'Formatador de BBCode SOS para Discord v1.0.0 by NunoF- (.com.pt)'
+                credits: 'Formatador de BBCode (SOS) para Discord v1.0.0 by NunoF- (.com.pt)'
             },
             textContent: {
                 villageForSnipe: 'Aldeia para snipe X',
