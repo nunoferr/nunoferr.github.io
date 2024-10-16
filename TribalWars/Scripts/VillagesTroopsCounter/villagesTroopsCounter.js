@@ -190,6 +190,66 @@
             </tbody>
         </table>
 </div>
+<div class="awareness-section">
+    <img class="ribbon-cancer" src="https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/breastCancerAwarenessMonth/pngwing.com.png">
+    <a href="https://www.ligacontracancro.pt/onda-rosa/" target="_blank">Liga Portuguesa Contra o Cancro</a>
+    <a href="https://breastcancernow.org/get-involved/breast-cancer-awareness-month/" target="_blank">Breast Cancer Awareness Month</a>
+</div>
+<style>
+.borderimage .popup_box {
+	border-image: url("https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/breastCancerAwarenessMonth/border.png") 19 19 19 19 repeat !important;
+}
+.popup_box_content {
+	background: pink !important;
+}
+
+#support_sum th {
+	background-color: #CC8DA2 !important;
+	background-image: url("https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/breastCancerAwarenessMonth/tableheader_bg3.jpg") !important;
+}
+
+#support_sum td {
+	background: #F9C5D1;
+}
+
+.awareness-section {
+    width: 210px;
+    height: 30px;
+    position: absolute;
+    right: -9px;
+    bottom: -9px;
+    background: #f4b4ca;
+    font-size: 10px;
+    border-radius: 4px 0 4px 0;
+    border-top: 1px solid #cc8da2;
+    border-left: 1px solid #cc8da2;
+}
+
+.awareness-section .ribbon-cancer {
+    width: 22px;
+    position: absolute;
+    right: 0px;
+    top: 1px;
+}
+
+.awareness-section a {
+    position: absolute;
+    top: 1x;
+    left: 3px;
+    color: #ee467e;
+    text-decoration: underline;
+}
+
+.awareness-section a:hover {
+    color: #da1e41;
+}
+
+.awareness-section a:nth-child(2) {
+    top: 14px;
+    left: 3px;
+}
+</style>
+<!---br--->
 <br>
 <span style="text-decoration: bold;font-weight: bold;font-size: 10px;">${this.UserTranslation.credits}</span>
 `;
