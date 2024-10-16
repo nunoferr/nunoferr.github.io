@@ -199,8 +199,14 @@
 .borderimage .popup_box {
 	border-image: url("https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/breastCancerAwarenessMonth/border.png") 19 19 19 19 repeat !important;
 }
+
 .popup_box_content {
-	background: pink !important;
+	background: #f9c5d1 !important;
+    min-width: 600px;
+}
+
+.mds .popup_box_content {
+    min-width: unset !important;
 }
 
 #support_sum th {
@@ -209,7 +215,7 @@
 }
 
 #support_sum td {
-	background: #F9C5D1;
+	background: pink;
 }
 
 .awareness-section {
@@ -223,6 +229,14 @@
     border-radius: 4px 0 4px 0;
     border-top: 1px solid #cc8da2;
     border-left: 1px solid #cc8da2;
+}
+
+.mds .awareness-section{
+    border: 1px solid #cc8da2;
+    bottom: -53px;
+    right: -5px;
+    height: 34px;
+    border-radius: 4px 0px 4px 4px;
 }
 
 .awareness-section .ribbon-cancer {
