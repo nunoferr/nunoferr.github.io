@@ -1,7 +1,7 @@
 /*
 * Script Name: Troop Counter Saven
-* Version: v1.1.1
-* Last Updated: 2024-09-26
+* Version: v1.1.2
+* Last Updated: 2024-10-16
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
@@ -33,7 +33,7 @@
                 },
                 successMessage: 'Loaded successfully!',
                 loadingMessage: 'Loading...',
-                credits: 'Village Troops Counter script v1.1.1 by NunoF- (.com.pt)'
+                credits: 'Village Troops Counter script v1.1.2 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 title: 'Contador de tropas em casa e em buscas',
@@ -47,7 +47,7 @@
                 },
                 successMessage: 'Carregado com sucesso!',
                 loadingMessage: 'A carregar...',
-                credits: 'Contador de tropas em casa e em buscas v1.1.1 por NunoF- (.com.pt)'
+                credits: 'Contador de tropas em casa e em buscas v1.1.2 por NunoF- (.com.pt)'
             }
         };
     }
