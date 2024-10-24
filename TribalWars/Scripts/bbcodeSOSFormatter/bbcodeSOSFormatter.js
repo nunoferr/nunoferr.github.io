@@ -5,10 +5,10 @@
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever
-* Approved: 
-* Approved Date: 
-* Forum URL (.net): 
-* Mod: 
+* Approved: Yes
+* Approved Date: 2024-10-24
+* Forum URL (.net): https://forum.tribalwars.net/index.php?threads/bbcode-sos-formatter-for-discord.293058/
+* Mod: RedAlert
 */
 
 /*--------------------------------------------------------------------------------------
