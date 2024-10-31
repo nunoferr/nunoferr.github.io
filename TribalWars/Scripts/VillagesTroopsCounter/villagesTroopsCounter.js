@@ -1,7 +1,7 @@
 /*
 * Script Name: Troop Counter Saven
-* Version: v1.1.2
-* Last Updated: 2024-10-16
+* Version: v1.1.3
+* Last Updated: 2024-10-31
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever#quack
@@ -33,7 +33,7 @@
                 },
                 successMessage: 'Loaded successfully!',
                 loadingMessage: 'Loading...',
-                credits: 'Village Troops Counter script v1.1.2 by NunoF- (.com.pt)'
+                credits: 'Village Troops Counter script v1.1.3 by NunoF- (.com.pt)'
             },
             pt_PT: {
                 title: 'Contador de tropas em casa e em buscas',
@@ -47,7 +47,7 @@
                 },
                 successMessage: 'Carregado com sucesso!',
                 loadingMessage: 'A carregar...',
-                credits: 'Contador de tropas em casa e em buscas v1.1.2 por NunoF- (.com.pt)'
+                credits: 'Contador de tropas em casa e em buscas v1.1.3 por NunoF- (.com.pt)'
             }
         };
     }
@@ -190,10 +190,10 @@
             </tbody>
         </table>
 </div>
-<div class="awareness-section">
-    <img class="ribbon-cancer" src="https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/breastCancerAwarenessMonth/pngwing.com.png">
-    <a href="https://www.ligacontracancro.pt/onda-rosa/" target="_blank">Liga Portuguesa Contra o Cancro</a>
-    <a href="https://breastcancernow.org/get-involved/breast-cancer-awareness-month/" target="_blank">Breast Cancer Awareness Month</a>
+<div class="awareness-section movember">
+    <img class="ribbon-cancer" src="https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/movember/blue-ribbon.png">
+    <a href="https://www.ligacontracancro.pt/cancro-da-prostata/" target="_blank">Liga Portuguêsa Contra o Cancro</a>
+    <a href="https://movember.com/" target="_blank">Movember</a>
 </div>
 <style>
 .borderimage .popup_box {
@@ -262,6 +262,65 @@
     top: 14px;
     left: 3px;
 }
+
+
+/* Movember INI */
+
+.borderimage .popup_box {
+	border-image: url("https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/movember/border.png") 19 19 19 19 repeat !important;
+}
+
+.popup_box_content {
+	background: #98d1fc !important;
+    min-width: 600px;
+}
+
+.mds .popup_box_content {
+    min-width: unset !important;
+}
+
+
+#support_sum th {
+	background-color: #2e71a6 !important;
+	background-image: url("https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/movember/tableheader_bg3.jpg") !important;
+}
+
+#support_sum td {
+	background: #a9d7ff;
+}
+
+.movember {
+    background: #2e71a6;
+    border-top: 1px solid #3066b9;
+    border-left: 1px solid #3066b9;
+}
+
+.mds .movember {
+    border: 1px solid #3066b9;
+}
+
+.movember .ribbon-cancer {
+    width: 47px;
+    position: absolute;
+    right: -16px;
+    top: -5px;
+    z-index: 1;
+}
+
+.movember a {
+    color: #9de3fe;
+}
+
+.movember a:hover {
+    color: #212889;
+}
+
+.borderimage .popup_box {
+	border-image: url("https://i.imgur.com/f9FE7Ww.png") 19 19 19 19 repeat !important;
+}
+
+
+/* Movember END */
 </style>
 <!---br--->
 <br>
