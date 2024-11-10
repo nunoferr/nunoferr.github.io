@@ -1,7 +1,7 @@
 /*
 * Script Name: Tribe Fulls Calculator
 * Version: v1.0
-* Last Updated: 2024-09-23
+* Last Updated: 2024-11-10
 * Author: NunoF-
 * Author URL: https://nunoferr.github.io/
 * Author Contact: Discord - ducks4ever
@@ -31,9 +31,36 @@
                     villages: 'Villages',
                     total: 'Total'
                 },
+                groupsSection: {
+                    title: 'Groups',
+                    desc: 'Create a new group',
+                    extraInstructions: 'or fill with a new name if renaming a current group',
+                    newGroupPlaceholder: 'New group name',
+                    createGroupBtn: 'Create group with current troops',
+                    selectiGroupDesc: 'Select group',
+                    selectDefaultValue: 'No group selected',
+                    editGroupBtn: 'Edit group with current troops',
+                    deleteGroupBtn: 'Delete group',
+                    groupDeleteConfirmation: function(groupName) { return `Are you sure that you want to delete the <strong>${groupName}</strong> group?`; },
+                    groupEditConfirmation: function(groupName) { return `Are you sure that you want to edit the <strong>${groupName}</strong> group?`; },
+                    groupNameChangeConfirmation: function(newName) { return `<br><br>Keep in mind the group name will be changed to <strong>${newName}</strong>`; },
+                    errorMessages: {
+                        groupNameMissing: 'Erro! Please give the group a name.',
+                        groupNameAlreadyExists: 'Error! A group with this name already exists, please choose a different name.',
+                        noGroupSelected: 'Error! Please select a group.',
+                        pleaseSelectAGroupToDelete: 'Error! Please select a group to delete.'
+                    },
+                    successMessages: {
+                        groupLoadedSuccessfully: 'Group loaded successfully!',
+                        groupSuccessfullyCreated: 'Group successfully created!',
+                        groupSuccessfullyEdited: 'Group successfully edited!',
+                        groupSuccessfullyDeleted: 'Group successfully deleted!'
+                    }
+                },
+                units: 'Units',
                 coordinatesToImport: 'Display coordinates to import to another script',
                 loadingMessage: 'Loading',
-                successMessage: 'Loaded successfully!',
+                armiesSuccessfullyLoaded: 'Armies successfully loaded.',
                 errorMessageNoVillagesFound: 'This player either does not have any villages or does not have the "Share owned troops" setting enabled.',
                 credits: 'Tribe Villages Armies Finder script v1.0.0 by NunoF- (.com.pt)'
             },
@@ -47,9 +74,36 @@
                     villages: 'Aldeias',
                     total: 'Total'
                 },
+                groupsSection: {
+                    title: 'Grupos',
+                    desc: 'Criar novo grupo',
+                    extraInstructions: 'ou preencha com um nome para renomear o grupo atual.',
+                    newGroupPlaceholder: 'Novo nome do grupo.',
+                    createGroupBtn: 'Criar grupo com as tropas atuais',
+                    selectiGroupDesc: 'Selecionar grupo.',
+                    selectDefaultValue: 'Nenhum grupo selecionado.',
+                    editGroupBtn: 'Editar grupo com as tropas atuais.',
+                    deleteGroupBtn: 'Apagar grupo',
+                    groupDeleteConfirmation: function(groupName) { return `Tem a certeza de que deseja apagar o grupo <strong>${groupName}</strong>?`; },
+                    groupEditConfirmation: function(groupName) { return `Tem a certeza de que deseja editar o grupo <strong>${groupName}</strong> group?`; },
+                    groupNameChangeConfirmation: function(newName) { return `<br><br>Esteja ciente que o nome do grupo será alterado para <strong>${newName}</strong>`; },
+                    errorMessages: {
+                        groupNameMissing: 'Erro! Por favor insira o nome do grupo.',
+                        groupNameAlreadyExists: 'Erro! Um grupo com este nome já existe, por favor escolha um nome diferente.',
+                        noGroupSelected: 'Erro! Por favor selecione um grupo.',
+                        pleaseSelectAGroupToDelete: 'Error! Por favor selecione um grupo para apagar.'
+                    },
+                    successMessages: {
+                        groupLoadedSuccessfully: 'Grupo carregado com sucesso!',
+                        groupSuccessfullyCreated: 'Grupo criado com sucesso!',
+                        groupSuccessfullyEdited: 'Grupo criado com editado!',
+                        groupSuccessfullyDeleted: 'Grupo apagado com sucesso!'
+                    }
+                },
+                units: 'Unidades',
                 coordinatesToImport: 'Mostrar coordenadas para serem importadas para outro script',
                 loadingMessage: 'A carregar',
-                successMessage: 'Carregado com sucesso!',
+                armiesSuccessfullyLoaded: 'Exércitos carregados com sucesso.',
                 errorMessageNoVillagesFound: 'Este jogador ou não tem aldeias ou não tem a definição de "Partilhar tropas próprias" ativa.',
                 credits: 'Procurar exércitos nas aldeias da tribo v1.0.0 por NunoF- (.com.pt)'
             }
@@ -117,7 +171,7 @@
             $('#tribeArmiesFinder .searchTable').css('width', '+=18px');
         }, 300);
         
-        if (runFinder) UI.SuccessMessage(this.UserTranslation.successMessage);
+        if (runFinder) UI.SuccessMessage(this.UserTranslation.armiesSuccessfullyLoaded);
 
         function createArmiesSection(UserTranslation, armies) {
             var html = `
@@ -428,17 +482,17 @@
         return `
         <table class="vis searchTable">
             <tbody>
-                ${fillSearchFields(this.availableSupportUnits, this.versionNumber, this.isMobile, unitsFormValues)}
+                ${fillSearchFields(this.UserTranslation, this.availableSupportUnits, this.versionNumber, this.isMobile, unitsFormValues)}
             </tbody>
         </table>
         <div style="clear: both;"></div>
         `;
         
-        function fillSearchFields(availableSupportUnits, versionNumber, isMobile, unitsFormValues) {
+        function fillSearchFields(UserTranslation, availableSupportUnits, versionNumber, isMobile, unitsFormValues) {
             var maxColumnLength = !isMobile ? availableSupportUnits.length / 2 : 2
             var fieldsList = `
                 <tr>
-                    <th colspan="${maxColumnLength}">Units</th>
+                    <th colspan="${maxColumnLength}">${UserTranslation.units}</th>
                 </tr>
             `;
             
@@ -502,21 +556,21 @@
     #createGroupsSection() {
         return `
         <div id="groupsSection" style="border: 1px solid #7d510f;display: block;width: 291px;margin-top:10px;padding:5px;background: transparent url(https://dspt.innogamescdn.com/asset/86f7f6ca/graphic/index/iconbar-mc.png) scroll left top repeat;">
-            <h3 style="margin: 0;line-height: 1;padding: 0;">Groups</h3>
-            <h4 style="margin: 15px 0 0 0;line-height: 1;padding: 0;">Create new group</h4>
-            <span style="font-size: 9px;font-style: italic;">(or fill with a new name if renaming a current group)</span></br>
-            <input type="text" id="newGroupName" placeholder="New group name">
-            <input type="button" style="margin-top: 10px;" class="btn evt-confirm-btn btn-confirm-yes" value="Create group with current troops" onclick="attackTribeCalculator.createNewGroup()">
-            <h4 style="margin: 15px 0 5px 0;line-height: 1;padding: 0;">Select group</h4>
-            ${initEditGroupsSection(this.#getStoredArmiesGroups())}
+            <h3 style="margin: 0;line-height: 1;padding: 0;">${this.UserTranslation.groupsSection.title}</h3>
+            <h4 style="margin: 15px 0 0 0;line-height: 1;padding: 0;">${this.UserTranslation.groupsSection.desc}</h4>
+            <span style="font-size: 9px;font-style: italic;">(${this.UserTranslation.groupsSection.extraInstructions})</span></br>
+            <input type="text" id="newGroupName" placeholder="${this.UserTranslation.groupsSection.newGroupPlaceholder}">
+            <input type="button" style="margin-top: 10px;" class="btn evt-confirm-btn btn-confirm-yes" value="${this.UserTranslation.groupsSection.createGroupBtn}" onclick="attackTribeCalculator.createNewGroup()">
+            <h4 style="margin: 15px 0 5px 0;line-height: 1;padding: 0;">${this.UserTranslation.groupsSection.selectiGroupDesc}</h4>
+            ${initEditGroupsSection(this.UserTranslation, this.#getStoredArmiesGroups())}
             </br>
-            <input type="button" class="btn btn-default" style="background: #4040f7;" value="Edit group with current troops" onclick="attackTribeCalculator.editGroup()">
-            <input type="button" class="btn btn-default" value="Delete group" onclick="attackTribeCalculator.deleteGroup()">
+            <input type="button" class="btn btn-default" style="background: #4040f7;" value="${this.UserTranslation.groupsSection.editGroupBtn}" onclick="attackTribeCalculator.editGroup()">
+            <input type="button" class="btn btn-default" value="${this.UserTranslation.groupsSection.deleteGroupBtn}" onclick="attackTribeCalculator.deleteGroup()">
         </div>
         `;
 
-        function initEditGroupsSection(tribeArmiesGroups) {
-            var html = '<option selected default="true">No group selected</option>';
+        function initEditGroupsSection(UserTranslation, tribeArmiesGroups) {
+            var html = `<option selected default="true">${UserTranslation.groupsSection.selectDefaultValue}</option>`;
             $.each(tribeArmiesGroups, function(key, value) {
                 html += `<option value="${key}">${key}</option>`;
             });
@@ -534,7 +588,7 @@
         } 
         
         fillForm(this.#getStoredArmiesGroups()[$(selected).val()]);
-        UI.InfoMessage('Group loaded.');
+        UI.InfoMessage(this.UserTranslation.groupsSection.successMessages.groupLoadedSuccessfully);
         
         function fillForm(formValues) {
             $.each(formValues, function(key, value) {
@@ -558,20 +612,20 @@
 
     createNewGroup(updatingGroup = false) {
         var newGroupName = $('#tribeArmiesFinder #groupsSection #newGroupName').val().trim();
-        if ((newGroupName.length === 0 || newGroupName === 'No group selected')) {
-            UI.ErrorMessage('Please give the group a name');
+        if ((newGroupName.length === 0 || newGroupName === this.UserTranslation.groupsSection.selectDefaultValue)) {
+            UI.ErrorMessage(this.UserTranslation.groupsSection.errorMessages.groupNameMissing);
             return;
         }
 
         var tribeArmiesGroups = this.#getStoredArmiesGroups();
         if (tribeArmiesGroups.hasOwnProperty(newGroupName)) {
-            UI.ErrorMessage('A group with this name already exists, please choose a different name.');
+            UI.ErrorMessage(this.UserTranslation.groupsSection.errorMessages.groupNameAlreadyExists);
             return;
         }
         
         tribeArmiesGroups[newGroupName.trim()] = this.#fetchUnitsFormValues(this.#initFormValues());
         this.#storeStoredArmiesGroups(tribeArmiesGroups);
-        UI.SuccessMessage(!updatingGroup ? 'Group successfully created.' : 'Group successfully edited!');
+        UI.SuccessMessage(!updatingGroup ? this.UserTranslation.groupsSection.successMessages.groupSuccessfullyCreated : this.UserTranslation.groupsSection.successMessages.groupSuccessfullyEdited);
         this.#createUI();
     }
 
@@ -579,17 +633,17 @@
         var selected = $('#tribeArmiesFinder #groupsSection #tribeArmiesGroupsSelect').find(":selected");
 
         if ($(selected).attr('default') === 'true') {
-            UI.ErrorMessage('Please select a group to edit.');
+            UI.ErrorMessage(this.UserTranslation.groupsSection.errorMessages.noGroupSelected);
             return;
         }
 
         var tribeArmiesGroups = this.#getStoredArmiesGroups();
 
-        var newName = $('#tribeArmiesFinder #groupsSection #newGroupName').val();
+        var newName = $('#tribeArmiesFinder #groupsSection #newGroupName').val().trim();
         var groupNameChange = false;
-        if (newName.trim().length > 0 && selected.val().trim() !== newName) { // name is changing
+        if (newName.length > 0 && selected.val() !== newName) { // name is changing
             if (tribeArmiesGroups.hasOwnProperty(newName)) {
-                UI.ErrorMessage('A group with this name already exists, please choose a different name.');
+                UI.ErrorMessage(this.UserTranslation.groupsSection.errorMessages.groupNameAlreadyExists);
                 return;
             }
             groupNameChange = true;
@@ -597,9 +651,14 @@
             $('#tribeArmiesFinder #groupsSection #newGroupName').val(selected.val().trim());
         }
 
+        if (newName === this.UserTranslation.groupsSection.selectDefaultValue) {
+            UI.ErrorMessage(this.UserTranslation.groupsSection.errorMessages.groupNameMissing);
+            return;
+        }
+
         var currentObj = this;
-        UI.addConfirmBox(`Are you sure that you want to edit the <strong>${$(selected).val()}</strong> group?
-        ${!groupNameChange ? '' : `</br>Keep in mind the group name will be changed to <strong>${newName}</strong>`}`, function() {
+        UI.addConfirmBox(this.UserTranslation.groupsSection.groupEditConfirmation($(selected).val()) + 
+        `${!groupNameChange ? '' : this.UserTranslation.groupsSection.groupNameChangeConfirmation(newName)}`, function() {
             currentObj.deleteGroup(true);
             currentObj.createNewGroup(true);
         });
@@ -609,11 +668,11 @@
         var selected = $('#tribeArmiesFinder #groupsSection #tribeArmiesGroupsSelect').find(":selected");
         var currentObj = this;
         if ($(selected).attr('default') === 'true') {
-            UI.ErrorMessage('Please select a group to delete.');
+            UI.ErrorMessage(this.UserTranslation.groupsSection.errorMessages.noGroupSelected);
             return;
         }
         if (!bypassConfirmationBox) {
-            UI.addConfirmBox(`Are you sure that you want to delete the ${$(selected).val()} group?`, deleteGroupById);
+            UI.addConfirmBox(this.UserTranslation.groupsSection.groupDeleteConfirmation($(selected).val()), deleteGroupById);
         } else {
             deleteGroupById(null);
         }
@@ -623,12 +682,11 @@
             delete tribeArmiesGroups[$(selected).val()];
             currentObj.#storeStoredArmiesGroups(tribeArmiesGroups);
             if (!bypassConfirmationBox) {
-                UI.SuccessMessage('Group successfully deleted.');
+                UI.SuccessMessage(currentObj.UserTranslation.groupsSection.successMessages.groupSuccessfullyDeleted);
                 currentObj.#createUI();
             }
         }
     }
 }
-
 var attackTribeCalculator = new AttackTribeCalculator();
 }
