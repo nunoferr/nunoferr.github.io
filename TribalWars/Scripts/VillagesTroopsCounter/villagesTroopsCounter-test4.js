@@ -24,8 +24,8 @@
             en_US: {
                 title: 'Home and Scavenging Troops Counter',
                 home: 'Home',
-				scavenging: 'Scavenging',
-				total: 'Total',
+                scavenging: 'Scavenging',
+                total: 'Total',
                 errorMessages: {
                     premiumRequired: 'Error. A premium account is required to run this script!',
                     errorFetching: 'An error occured while trying to fetch the following URL:',
