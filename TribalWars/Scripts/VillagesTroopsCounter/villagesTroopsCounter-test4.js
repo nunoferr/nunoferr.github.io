@@ -39,8 +39,8 @@
             pt_PT: {
                 title: 'Contador de tropas em casa e em buscas',
                 home: 'Em casa',
-				scavenging: 'Em busca',
-				total: 'Total',
+                scavenging: 'Em busca',
+                total: 'Total',
                 errorMessages: {
                     premiumRequired: 'Erro. É necessário possuir conta premium para correr este script!',
                     errorFetching: 'Ocorreu um erro ao tentar carregar o seguinte URL:',
