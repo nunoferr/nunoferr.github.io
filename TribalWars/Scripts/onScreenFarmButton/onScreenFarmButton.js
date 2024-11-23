@@ -25,6 +25,7 @@
             errorMessage: 'FarmGod isn\'t running.<br>Please run FarmGod before running this script.',
             errorMessages: {
                 notOnMobileApp: 'This script is only available on the mobile application.',
+                scriptAlreadyRunning: 'This script is already running.',
                 farmGodIsntRunning: 'FarmGod isn\'t running.<br>Please run FarmGod before running this script.',
             },
             FarmBtnText: 'Farm'
@@ -33,6 +34,7 @@
             successAndCreditsMessage: 'Botão de farm no ecrã v1.0.0 by NunoF- (.com.pt)',
             errorMessages: {
                 notOnMobileApp: 'Este script apenas está disponível na aplicação do telemóvel.',
+                scriptAlreadyRunning: 'O script já está a correr.',
                 farmGodIsntRunning: 'O FarmGod não está a correr.<br>Por favor corra o FarmGod antes de correr este script.',
             },
             FarmBtnText: 'Farmar'
@@ -50,6 +52,11 @@
     #openUI() {
         if ($('body').hasClass("desktop")) {
             UI.ErrorMessage(this.UserTranslation.errorMessages.notOnMobileApp);
+            return;
+        }
+
+        if ($('#pressToFarmButton').length > 0) {
+            UI.ErrorMessage(this.UserTranslation.errorMessages.scriptAlreadyRunning);
             return;
         }
 
