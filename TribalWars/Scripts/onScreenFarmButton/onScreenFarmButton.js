@@ -24,7 +24,7 @@
             successAndCreditsMessage: 'On screen farm button script v1.0.0 by NunoF- (.com.pt)',
             errorMessage: 'FarmGod isn\'t running.<br>Please run FarmGod before running this script.',
             errorMessages: {
-                notOnMobileApp: 'This script is only available on the mobile app.',
+                notOnMobileApp: 'This script is only available on the mobile application.',
                 farmGodIsntRunning: 'FarmGod isn\'t running.<br>Please run FarmGod before running this script.',
             },
             FarmBtnText: 'Farm'
@@ -32,7 +32,7 @@
         pt_PT: {
             successAndCreditsMessage: 'Botão de farm no ecrã v1.0.0 by NunoF- (.com.pt)',
             errorMessages: {
-                notOnMobileApp: 'Este script apenas está disponível na App do telemóvel.',
+                notOnMobileApp: 'Este script apenas está disponível na aplicação do telemóvel.',
                 farmGodIsntRunning: 'O FarmGod não está a correr.<br>Por favor corra o FarmGod antes de correr este script.',
             },
             FarmBtnText: 'Farmar'
