@@ -80,7 +80,7 @@
         var pressToFarmButton = document.getElementById('pressToFarmButton');
         var interval = 0;
 
-        pressToFarmButton.addEventListener('mousedown', () => {
+        pressToFarmButton.addEventListener('mousedown touchstart', () => {
             buttonBeingPressed();
         });   
 
