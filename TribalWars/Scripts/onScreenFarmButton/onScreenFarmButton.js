@@ -79,10 +79,9 @@
         
         var pressToFarmButton = document.getElementById('pressToFarmButton');
         var interval = 0;
-
-        pressToFarmButton.addEventListener('mousedown touchstart click', () => {
+        ['mousedown', 'touchstart'].forEach(event => pressToFarmButton.addEventListener(event, () => {
             buttonBeingPressed();
-        });   
+        }));   
 
         function buttonBeingPressed() {
             interval = setInterval(buttonBeingPressedHandler, 200);
