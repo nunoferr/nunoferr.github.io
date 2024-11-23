@@ -61,7 +61,7 @@
 
         UI.SuccessMessage(this.UserTranslation.successAndCreditsMessage);
 
-        $('body').prepend(`<input type="button" id="pressToFarmButton" class="btn" value="Farm"/>
+        $('body').prepend(`<input type="button" id="pressToFarmButton" class="btn" value="${this.UserTranslation.FarmBtnText}"/>
         <style>
         body:not([desktop]) #pressToFarmButton {
             position: fixed;
