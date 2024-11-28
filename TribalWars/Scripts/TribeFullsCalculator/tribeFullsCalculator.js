@@ -392,6 +392,7 @@
         function setTroopsColumnLocation(currentObj, htmlContentContainer) {
             $.each($(htmlContentContainer).find('table:last tr th:not(:first):not(:last)'), function(id, value) {
                 var src = $(value).find('img').eq(0).attr('src');
+                if (src === undefined) return;
                 currentObj.troopsColumnLocation[src.substring(src.indexOf('/unit/unit_') + 11, src.indexOf('.png'))] = id + 1;
             });
         }
