@@ -553,7 +553,7 @@
         var smallerThanSec = $(checkbox).parent().parent().find('.tribeVillagesArmiesSmallerThan');
         $(smallerThanSec).css('display', smallerThanSec.css('display') === 'none' ? 'block' : 'none');
         $(checkbox).css('vertical-align', smallerThanSec.css('display') === 'block' ? '8px' : !this.isMobile ? 'baseline' : 'middle');
-        if (!$(checkbox).attr('checked')) $(smallerThanSec).find('input').val(null);
+        if (!$(checkbox).is(":checked")) $(smallerThanSec).find('input').val(null);
     }
 
     
