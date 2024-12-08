@@ -199,8 +199,8 @@
 
             var currentObj = this;
             $.each(troopsTable, function(id, tbodyObj) {
-                var villageTroops = $(tbodyObj).find('tr').eq(0);
-                var villageTroopsLine = $(villageTroops).find('td:gt(1)');
+                var villageTroops = $(tbodyObj).find('tr').eq(1);
+                var villageTroopsLine = $(villageTroops).find('td:gt(0)');
                 var c = 0;
                 $.each(currentObj.availableSupportUnits, function(key, value) {
                     troopsObj.villagesTroops[value] += parseInt(villageTroopsLine.eq(c).text().trim());
