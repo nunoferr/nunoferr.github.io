@@ -279,23 +279,27 @@
             </tbody>
         </table>
 </div>
-<div class="awareness-section movember">
+<!--div class="awareness-section movember">
     <img class="ribbon-cancer" src="https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/movember/blue-ribbon.png">
     <a href="https://www.ligacontracancro.pt/cancro-da-prostata/" target="_blank">Liga Portuguêsa Contra o Cancro</a>
     <a href="https://movember.com/" target="_blank">Movember</a>
-</div>
+</div-->
 <style>
+.popup_box_content {
+    min-width: 600px;
+}
+
+.mds .popup_box_content {
+    min-width: unset !important;
+}
+
+/*
 .borderimage .popup_box {
 	border-image: url("https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/breastCancerAwarenessMonth/border.png") 19 19 19 19 repeat !important;
 }
 
 .popup_box_content {
 	background: #f9c5d1 !important;
-    min-width: 600px;
-}
-
-.mds .popup_box_content {
-    min-width: unset !important;
 }
 
 #support_sum th {
@@ -320,7 +324,7 @@
     border-left: 1px solid #cc8da2;
 }
 
-.mds .awareness-section{
+.mds .awareness-section {
     border: 1px solid #cc8da2;
     bottom: -53px;
     right: -5px;
@@ -353,7 +357,7 @@
 }
 
 
-/* Movember INI */
+// Movember INI
 
 .borderimage .popup_box {
 	border-image: url("https://nunoferr.github.io/TribalWars/Scripts/VillagesTroopsCounter/assets/movember/border.png") 19 19 19 19 repeat !important;
@@ -408,8 +412,8 @@
 	border-image: url("https://i.imgur.com/f9FE7Ww.png") 19 19 19 19 repeat !important;
 }
 
-
-/* Movember END */
+// Movember END
+*/
 </style>
 <!---br--->
 <br>
