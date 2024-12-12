@@ -426,6 +426,7 @@
         var pageContent = await this.#fetchTribeUserTroopsPage(userId);
         var contentContainer = !(this.isMobile) ? 'contentContainer' : 'content_value';
         var troopsUserPageLines = $(pageContent).find(`#${contentContainer} table:last tr`);
+        if ($(troopsUserPageLines).eq(1).find(`td:eq(${this.troopsColumnLocation[Object.keys(this.troopsColumnLocation)[0]]})`).filter(function() {return $(this).text().trim() === '?'}).length > 0) return false;
 
         var userTroopsList = {};
         var currentObj = this;
