@@ -114,7 +114,6 @@
 
     constructor() {
         this.UserTranslation = game_data.locale in TribeArmiesFinder.TribeArmiesFinderTranslations() ? this.UserTranslation = TribeArmiesFinder.TribeArmiesFinderTranslations()[game_data.locale] : TribeArmiesFinder.TribeArmiesFinderTranslations().en_US;
-        this.UserTranslation = TribeArmiesFinder.TribeArmiesFinderTranslations().en_US;
         this.availableSupportUnits = Object.create(game_data.units);
         this.availableSupportUnits.splice(this.availableSupportUnits.indexOf('militia'), 1);
         this.troopsColumnLocation = {};
@@ -399,7 +398,10 @@
         var userIdSelectOptions = $(htmlContentContainer).find('select[name$="player_id"]').eq(0).find('option:not(:first)');
         var usersIdsArr = {};
         $.each(userIdSelectOptions, function (key, value) {
-            usersIdsArr[$(value).text().trim()] = $(value).attr('value');
+            usersIdsArr[$(value).text().trim()] = {
+                userId: $(value).attr('value'),
+                disabled: $(value).attr('disabled') !== undefined
+            };
         });
         return usersIdsArr;
 
@@ -424,7 +426,6 @@
         var pageContent = await this.#fetchTribeUserTroopsPage(userId);
         var contentContainer = !(this.isMobile) ? 'contentContainer' : 'content_value';
         var troopsUserPageLines = $(pageContent).find(`#${contentContainer} table:last tr`);
-        if ($(troopsUserPageLines).eq(1).find('td:eq(1)').filter(function() {return $(this).text().trim() === '?'}).length > 0) return false;
 
         var userTroopsList = {};
         var currentObj = this;
@@ -460,10 +461,12 @@
         var c = 0;
         for(var username in users)
         {
-            var userId = users[username];
+            var user = users[username];
+            var userId = user.userId;
+            var disabled = user.disabled;
             await new Promise(res => setTimeout(res, Math.max(lastRunTime + 200 - Date.now(), 0))); 
             lastRunTime = Date.now();
-            var userTroops = await currentObj.#handleMemberPage(userId);
+            var userTroops = !disabled ? await currentObj.#handleMemberPage(userId) : false;
             var playerVillages = {};
 
             $.each(userTroops, function(villageCoords, villageTroops) { // If userTroops is false, foreach is automatically skipped
