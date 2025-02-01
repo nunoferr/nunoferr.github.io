@@ -28,12 +28,15 @@ jobs:
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
           python -m pip install --upgrade pip  
           pip install pyinstaller
-          pip install Pillow  # Ensure Pillow is installed for the EXE build
+          pip install Pillow  # Ensure Pillow is installed
+          pip install selenium  # Install Selenium
+          pip install webdriver-manager  # Install WebDriver Manager
+          pip install chromedriver-binary  # Install Chromedriver binary
 
       - name: Build executable
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
-          pyinstaller --onefile --console --clean --hidden-import=Pillow --hidden-import=PIL --collect-all=Pillow TWRankings.py
+          pyinstaller --onefile --console --clean --hidden-import=Pillow --hidden-import=PIL --hidden-import=selenium --hidden-import=chromedriver_binary --collect-all=Pillow --collect-all=selenium --collect-all=chromedriver_binary TWRankings.py
 
       - name: Debug - Check if EXE was created
         run: |
