@@ -3,11 +3,11 @@ name: Build EXE with PyInstaller
 on:
   push:
     branches:
-      - main # Change this if needed
+      - main  # Change if needed
 
 jobs:
   build:
-    runs-on: windows-latest # Run on Windows to generate a Windows executable
+    runs-on: windows-latest  # Run on Windows to generate an EXE file
 
     steps:
       - name: Checkout repository
@@ -16,29 +16,38 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.12" # Set the Python version
+          python-version: '3.12'  # Change if needed
 
       - name: Install dependencies
         run: |
+          cd TribalWars/Staff-Scripts/TWRankings  # Move to the correct directory
           python -m pip install --upgrade pip  
           pip install pyinstaller
 
       - name: Build executable
         run: |
-          pyinstaller --onefile TWRankings.py  # Replace with your script name
+          cd TribalWars/Staff-Scripts/TWRankings  # Move to the correct directory
+          pyinstaller --onefile --clean TWRankings.py
 
-      - name: Upload EXE as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: built-exe
-          path: dist/TWRankings.exe # Replace with the correct output name
-
-      - name: Commit and push EXE back to the repository
+      - name: Debug - Check if EXE was created
         run: |
-          git config --global user.name "github-actions"  
-          git config --global user.email "actions@github.com"  
-          git add dist/TWRankings.exe  
-          git commit -m "Add built executable"  
-          git push
+          cd TribalWars/Staff-Scripts/TWRankings  # Move to the correct directory
+          echo "Checking dist/ directory..."
+          dir dist  # List contents of dist/
+
+      - name: Commit and push EXE if it exists
+        run: |
+          cd TribalWars/Staff-Scripts/TWRankings  # Move to the correct directory
+          if exist dist\TWRankings.exe (
+            echo "EXE found, committing..."
+            git config --global user.name "github-actions"  
+            git config --global user.email "actions@github.com"  
+            git add dist/TWRankings.exe  
+            git commit -m "Add built executable"  
+            git push
+          ) else (
+            echo "ERROR: EXE not found!"
+            exit 1
+          )
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
