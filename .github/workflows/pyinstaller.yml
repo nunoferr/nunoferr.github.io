@@ -32,8 +32,7 @@ jobs:
       - name: Build executable
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
-          pyinstaller --onefile --console --hidden-import=PIL --clean TWRankings.py  # Build the EXE
-
+          pyinstaller --onefile --console --hidden-import=Pillow --hidden-import=PIL --clean TWRankings.py
       - name: Debug - Check if EXE was created
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
