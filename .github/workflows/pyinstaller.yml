@@ -45,7 +45,7 @@ jobs:
             git config --global user.email "actions@github.com"  
             git add dist/TWRankings.exe  
             git commit -m "Add built executable"  
-            git push
+            git push https://github.com/${{ github.repository }}.git HEAD:main
           } else {
             echo "ERROR: EXE not found!"
             exit 1
