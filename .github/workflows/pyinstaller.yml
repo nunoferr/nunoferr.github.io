@@ -6,6 +6,9 @@ on:
       - main # Trigger on push to the main branch
   workflow_dispatch: # Allows manual trigger
 
+permissions:
+  contents: write # Allow pushing content changes
+
 jobs:
   build:
     runs-on: windows-latest # Run on Windows to generate EXE
