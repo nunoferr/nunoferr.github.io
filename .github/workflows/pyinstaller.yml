@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main # Trigger on push to the main branch
-    paths:
-      - "TribalWars/Staff-Scripts/TWRankings/TWRankings.py" # Only trigger if TWRankings.py is changed
+
   workflow_dispatch: # Allows manual trigger
 
 permissions:
