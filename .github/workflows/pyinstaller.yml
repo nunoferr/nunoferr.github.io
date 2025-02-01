@@ -31,7 +31,7 @@ jobs:
       - name: Build executable
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
-          pyinstaller --onefile --clean TWRankings.py  # Build the EXE
+          pyinstaller --onefile --console TWRankings.py  # Build the EXE
 
       - name: Debug - Check if EXE was created
         run: |
