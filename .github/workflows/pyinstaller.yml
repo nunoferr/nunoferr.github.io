@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main # Trigger on push to the main branch
+    paths:
+      - "TribalWars/Staff-Scripts/TWRankings/TWRankings.py" # Only trigger if TWRankings.py is changed
   workflow_dispatch: # Allows manual trigger
 
 permissions:
@@ -31,7 +33,7 @@ jobs:
       - name: Build executable
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
-          pyinstaller --onefile --console TWRankings.py  # Build the EXE
+          pyinstaller --onefile --console --hidden-import=PIL --clean TWRankings.py  # Build the EXE
 
       - name: Debug - Check if EXE was created
         run: |
