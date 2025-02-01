@@ -28,11 +28,13 @@ jobs:
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
           python -m pip install --upgrade pip  
           pip install pyinstaller
+          pip install Pillow  # Ensure Pillow is installed for the EXE build
 
       - name: Build executable
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
           pyinstaller --onefile --console --hidden-import=Pillow --hidden-import=PIL --clean TWRankings.py
+
       - name: Debug - Check if EXE was created
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
