@@ -3,11 +3,12 @@ name: Build EXE with PyInstaller
 on:
   push:
     branches:
-      - main  # Change if needed
+      - main  # Trigger on push to the main branch
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   build:
-    runs-on: windows-latest  # Run on Windows to generate an EXE file
+    runs-on: windows-latest  # Run on Windows to generate EXE
 
     steps:
       - name: Checkout repository
@@ -16,28 +17,28 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  # Change if needed
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          cd TribalWars/Staff-Scripts/TWRankings  # Move to the correct directory
+          cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
           python -m pip install --upgrade pip  
           pip install pyinstaller
 
       - name: Build executable
         run: |
-          cd TribalWars/Staff-Scripts/TWRankings  # Move to the correct directory
-          pyinstaller --onefile --clean TWRankings.py
+          cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
+          pyinstaller --onefile --clean TWRankings.py  # Build the EXE
 
       - name: Debug - Check if EXE was created
         run: |
-          cd TribalWars/Staff-Scripts/TWRankings  # Move to the correct directory
+          cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
           echo "Checking dist/ directory..."
-          dir dist  # List contents of dist/
+          dir dist  # List contents of dist/ folder to confirm EXE is created
 
       - name: Commit and push EXE if it exists
         run: |
-          cd TribalWars/Staff-Scripts/TWRankings  # Move to the correct directory
+          cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
           if exist dist\TWRankings.exe (
             echo "EXE found, committing..."
             git config --global user.name "github-actions"  
