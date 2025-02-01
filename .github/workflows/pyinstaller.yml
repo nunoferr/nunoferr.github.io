@@ -3,12 +3,12 @@ name: Build EXE with PyInstaller
 on:
   push:
     branches:
-      - main  # Trigger on push to the main branch
-  workflow_dispatch:  # Allows manual trigger
+      - main # Trigger on push to the main branch
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   build:
-    runs-on: windows-latest  # Run on Windows to generate EXE
+    runs-on: windows-latest # Run on Windows to generate EXE
 
     steps:
       - name: Checkout repository
@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -39,16 +39,16 @@ jobs:
       - name: Commit and push EXE if it exists
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
-          if exist dist\TWRankings.exe (
+          if (Test-Path dist\TWRankings.exe) {
             echo "EXE found, committing..."
             git config --global user.name "github-actions"  
             git config --global user.email "actions@github.com"  
             git add dist/TWRankings.exe  
             git commit -m "Add built executable"  
             git push
-          ) else (
+          } else {
             echo "ERROR: EXE not found!"
             exit 1
-          )
+          }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
