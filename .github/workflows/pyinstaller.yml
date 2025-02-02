@@ -36,7 +36,7 @@ jobs:
       - name: Build executable
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
-          pyinstaller --onefile --console --clean --hidden-import=Pillow --hidden-import=PIL --hidden-import=selenium --hidden-import=chromedriver_binary --collect-all=Pillow --collect-all=selenium --collect-all=chromedriver_binary TWRankings.py
+          pyinstaller TWRankings.spec
 
       - name: Debug - Check if EXE was created
         run: |
