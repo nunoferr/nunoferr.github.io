@@ -67,7 +67,7 @@ def clear(): return print('\n' * 200)
 sys.stderr = open(os.devnull, 'w')
 
 
-version = "1.0.15"
+version = "1.0.0-rc.1"
 
 print("\n-------------------------------")
 print(f"TW Rankings fetcher\nVersion {version}\n\nDeveloped by: NunoF- (.com.pt)")
