@@ -213,7 +213,7 @@ def cropImage(world, mode, screenshotsPath, img, x1, y1, x2, y2):
 
 
 def waitForAnimation(animationName, driver):
-    print(f"Waiting for ${animationName} animation to finish...")
+    print(f"Waiting for {animationName} animation to finish...")
     driver.execute_script("""
         let element = document.querySelector("#content_value table table:not(:first-child) .progress-bar:first-child > div");
 
