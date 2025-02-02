@@ -50,7 +50,7 @@ jobs:
       - name: Commit and push EXE if it exists
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
-          if (Test-Path dist\TWRankings.exe) {
+          if (Test-Path "dist\TWRankings*.exe") {
             echo "EXE found, committing..."
             git config --global user.name "github-actions"  
             git config --global user.email "actions@github.com"  
