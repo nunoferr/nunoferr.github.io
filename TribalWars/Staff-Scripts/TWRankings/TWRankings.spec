@@ -1,7 +1,7 @@
 import sys
 import re
 import os
-
+from PyInstaller.utils.win32.versioninfo import VSVersionInfo, VarFileInfo, StringTable, FixedFileInfo, StringFileInfo, StringStruct, VarStruct
 # Default version in case extraction fails
 version = "unknown"
 
@@ -45,12 +45,63 @@ binaries = [(dll_path, '.')] if os.path.exists(dll_path) else []
 # Get the directory of the .spec file or script file
 spec_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 
+# Create the version information using VSVersionInfo
+version_info = VSVersionInfo(
+    # Define the version info using VarFileInfo and StringTable
+    VarFileInfo([StringTable(
+        '040904B0',  # Language ID for US English
+        {
+            'CompanyName': 'Nuno Ferreira',
+            'FileDescription': 'TWRankings Fetcher',
+            'FileVersion': version,
+            'ProductName': 'TWRankings',
+            'ProductVersion': version,
+            'Copyright': '© 2025 Nuno Ferreira',
+            'InternalName': 'TWRankings',
+            'OriginalFilename': 'TWRankings.exe'
+        }
+    )])
+)
+
+version_info = VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 0, 0, 0),
+    prodvers=(1, 0, 0, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x4,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo(
+      [
+        StringTable(
+          u'040904B0',
+          [
+            StringStruct(u'CompanyName', u'Nuno Ferreira'),
+            StringStruct(u'FileDescription', u'TW Rankings Fetcher'),
+            StringStruct(u'FileVersion', version),
+            StringStruct(u'InternalName', u'TWRankingse'),
+            StringStruct(u'LegalCopyright', u'Nuno Ferreira'),
+            StringStruct(u'ProductName', u'TWRankings'),
+            StringStruct(u'ProductVersion', version),
+            StringStruct(u'ApplicationName', exe_name)
+          ]
+        )
+      ]
+    ),
+    VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
+  ]
+)
 a = Analysis(
     ['TWRankings.py'],  # Your main script
     pathex=[spec_dir],  # Dynamically set the path to the .spec file directory
     binaries=binaries,  # This adds the dll to the bundled binaries
     datas=[],
     hiddenimports=['PIL', 'selenium', 'chromedriver_binary'],  # Ensure hidden imports are correctly listed
+    win_private_assemblies=False,
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
@@ -63,7 +114,8 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name=exe_name,  # Use the dynamic exe_name
+    name=exe_name,
+    version=version_info,
     debug=False,
     strip=False,
     upx=False,

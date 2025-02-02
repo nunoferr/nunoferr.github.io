@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main # Trigger on push to the main branch
-
+    paths:
+      - "TribalWars/Staff-Scripts/TWRankings/TWRankings.py"
+      - "TribalWars/Staff-Scripts/TWRankings/TWRankings.spec"
+      - "\..github/workflows/pyinstaller.yml"
   workflow_dispatch: # Allows manual trigger
 
 permissions:
