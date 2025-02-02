@@ -7,7 +7,7 @@ on:
     paths:
       - "TribalWars/Staff-Scripts/TWRankings/TWRankings.py"
       - "TribalWars/Staff-Scripts/TWRankings/TWRankings.spec"
-      - "\..github/workflows/pyinstaller.yml"
+      - ".github/workflows/pyinstaller.yml"
   workflow_dispatch: # Allows manual trigger
 
 permissions:
