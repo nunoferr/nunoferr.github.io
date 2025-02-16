@@ -303,7 +303,7 @@ def saveWorldToFolder(server, worldWanted):
 
     [/SPOILER]
     <br/><br/>
-    [SPOILER="Domninância"]
+    [SPOILER="Dominância"]
     <br/><br/>
 
     [/SPOILER]
