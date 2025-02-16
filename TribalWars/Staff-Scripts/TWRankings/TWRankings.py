@@ -197,7 +197,7 @@ def createFullScreenshotFile(driver, screenshotsPath):
     print(f"Full screenshot saved to {fullPageScreenshot}")
     return fullPageScreenshot
 
-def cropImage(world, mode, screenshotsPath, img, x1, y1, x2, y2):
+def cropImage(server, world, mode, screenshotsPath, img, x1, y1, x2, y2):
     dpi = 1.0;
     if sys.platform == "win32" or sys.platform == "cygwin": #windows
         dpi = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
@@ -207,6 +207,13 @@ def cropImage(world, mode, screenshotsPath, img, x1, y1, x2, y2):
         dpi = 1.0
     
     croppedImg = img.crop((int(x1 * dpi), int(y1 * dpi), int(x2 * dpi), int(y2 * dpi)))
+    if (server == "br" or server == "pt"):
+        translateModesArr = [("player", "Jogadores"), ("ally", "Tribos"), ("dominance", "Dominancia"), ("kill_ally", "OD Geral Tribos"), ("kill_player", "OD Geral Players"), ("wars", "Guerras")]
+        for translationMode in translateModesArr:
+            if translationMode[0] == mode:
+                mode = translationMode[1]
+                break;
+            
     croppedScreenshotPath = os.path.join(screenshotsPath, f"{world}-{mode}.png")
     croppedImg.save(croppedScreenshotPath)
     print(f"Cropped screenshot saved to {croppedScreenshotPath}")
@@ -226,34 +233,34 @@ def waitForAnimation(animationName, driver):
     print("Animation finished!")
 
 
-def savePlayerOrAllyPage(driver, screenshotsPath, world, mode):
+def savePlayerOrAllyPage(driver, screenshotsPath, server, world, mode):
     elementsToRemove = driver.find_elements(By.CSS_SELECTOR, "#content_value table td:has(div.ranking-top3) table:not(:first-of-type)")
     extraHeightToRemove = sum(el.size['height'] for el in elementsToRemove)
     element = driver.find_element(By.CSS_SELECTOR, "#content_value table td:has(div.ranking-top3)")
     fullPageScreenshot = createFullScreenshotFile(driver, screenshotsPath)
-    cropImage(world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'], element.location['y'] + element.size['height'] - extraHeightToRemove);
+    cropImage(server, world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'], element.location['y'] + element.size['height'] - extraHeightToRemove);
 
 
-def saveDominancePage(driver, screenshotsPath, world, mode):
+def saveDominancePage(driver, screenshotsPath, server, world, mode):
     waitForAnimation("Dominance load bar", driver)
     bothTables = driver.find_elements(By.CSS_SELECTOR, "#content_value table table:not(:first-child)")
     element = bothTables[0]
     fullPageScreenshot = createFullScreenshotFile(driver, screenshotsPath)
-    cropImage(world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'] + bothTables[1].size['width'] + 11, element.location['y'] + element.size['height']);
+    cropImage(server, world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'] + bothTables[1].size['width'] + 11, element.location['y'] + element.size['height']);
 
 
-def saveKillAllyKillPlayerPage(driver, screenshotsPath, world, mode):
+def saveKillAllyKillPlayerPage(driver, screenshotsPath, server, world, mode):
     allTables = driver.find_elements(By.CSS_SELECTOR, "#content_value table table")
     element = allTables[2]
     fullPageScreenshot = createFullScreenshotFile(driver, screenshotsPath)
-    cropImage(world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'], element.location['y'] + element.size['height']);
+    cropImage(server, world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'], element.location['y'] + element.size['height']);
 
 
-def saveWarsPage(driver, screenshotsPath, world, mode):
+def saveWarsPage(driver, screenshotsPath, server, world, mode):
     allTables = driver.find_elements(By.CSS_SELECTOR, "#content_value table table")
     element = allTables[1]
     fullPageScreenshot = createFullScreenshotFile(driver, screenshotsPath)
-    cropImage(world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'], element.location['y'] + element.size['height']);
+    cropImage(server, world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'], element.location['y'] + element.size['height']);
 
     
 def removeTempFile(screenshotsPath):
@@ -273,13 +280,13 @@ def saveWorldToFolder(server, worldWanted):
                 print(url)
                 driver.get(url)                        
                 if mode in ["player", "ally"]:
-                    savePlayerOrAllyPage(driver, screenshotsPath, world, mode)
+                    savePlayerOrAllyPage(driver, screenshotsPath, server, world, mode)
                 elif mode == "dominance":
-                    saveDominancePage(driver, screenshotsPath, world, mode)  
+                    saveDominancePage(driver, screenshotsPath, server, world, mode)  
                 elif mode in ["kill_ally", "kill_player"]:
-                    saveKillAllyKillPlayerPage(driver, screenshotsPath, world, mode)
+                    saveKillAllyKillPlayerPage(driver, screenshotsPath, server, world, mode)
                 elif mode == "wars":
-                    saveWarsPage(driver, screenshotsPath, world, mode)       
+                    saveWarsPage(driver, screenshotsPath, server, world, mode)       
             removeTempFile(screenshotsPath)
 
         if (server in ["pt", "br"]):
