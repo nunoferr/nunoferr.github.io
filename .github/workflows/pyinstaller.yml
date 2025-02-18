@@ -51,7 +51,7 @@ jobs:
         run: |
           cd TribalWars/Staff-Scripts/TWRankings
           if (Test-Path "dist\TWRankings*.exe") {
-            "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v dist\TWRankings*.exe
+            & "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v dist\TWRankings*.exe
           } else {
             echo "ERROR: EXE not found!"
             exit 1
