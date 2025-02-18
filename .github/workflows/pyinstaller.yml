@@ -52,6 +52,14 @@ jobs:
           $base64String = "${{ secrets.SIGNING_CERTIFICATE_BASE64 }}"
           [System.IO.File]::WriteAllBytes("signing_certificate.pfx", [Convert]::FromBase64String($base64String))
 
+      - name: Check if SignTool exists
+        run: |
+          if (Test-Path "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe") {
+            Write-Host "SignTool found!"
+          } else {
+            Write-Host "SignTool not found"
+          }
+
       - name: Sign EXE
         run: |
           & "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign /f signing_certificate.pfx /p ${{ secrets.CERTIFICATE_PASSWORD }} /tr http://timestamp.digicert.com /fd SHA256 /v dist/your_exe.exe
