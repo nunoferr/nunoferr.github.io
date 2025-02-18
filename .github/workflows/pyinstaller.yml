@@ -49,13 +49,16 @@ jobs:
 
       - name: Find and sign executable file
         run: |
-          $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe | Select-Object -ExpandProperty FullName -First 1
+          $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
+                      Where-Object { $_.FullName -match "x64" } |  # Ensure x64 version
+                      Select-Object -ExpandProperty FullName -First 1
           if (-not $signtool) {
-            Write-Host "ERROR: SignTool not found!"
+            Write-Host "ERROR: SignTool (x64) not found!"
             exit 1
           }
           Write-Host "Using SignTool at: $signtool"
           & $signtool sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v "TribalWars/Staff-Scripts/TWRankings/dist/TWRankings.exe"
+
         shell: powershell
 
       - name: Commit and push EXE if it exists
