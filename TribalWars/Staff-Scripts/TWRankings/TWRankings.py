@@ -63,9 +63,6 @@ from datetime import datetime
 
 def clear(): return print('\n' * 200)
 
-# Redirect standard error to null (this will suppress error messages)
-sys.stderr = open(os.devnull, 'w')
-
 
 version = "1.0.0-rc.4"
 
