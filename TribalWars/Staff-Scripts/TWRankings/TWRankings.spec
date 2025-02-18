@@ -121,5 +121,6 @@ exe = EXE(
     upx=False,
     console=True,
     icon=None,
+    clean=True,
     onefile=True  # Ensure one-file mode
 )
