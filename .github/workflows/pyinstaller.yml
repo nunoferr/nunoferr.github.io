@@ -51,6 +51,7 @@ jobs:
         run: |
           cd TribalWars/Staff-Scripts/TWRankings  # Move to the directory where the script is
           if (Test-Path "dist\TWRankings*.exe") {
+            signtool sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v dist\TWRankings*.exe
             echo "EXE found, committing..."
             git config --global user.name "github-actions"  
             git config --global user.email "actions@github.com"  
