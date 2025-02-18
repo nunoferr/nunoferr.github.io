@@ -47,15 +47,20 @@ jobs:
           echo "Checking dist/ directory..."
           dir dist  # List contents of dist/ folder to confirm EXE is created
 
+      - name: Install Windows SDK
+        run: |
+          choco install windows-sdk-10 -y
+        shell: powershell
+
       - name: Create Certificate
         run: |
-          cd TribalWars/Staff-Scripts/TWRankings
-          if (Test-Path "dist\TWRankings*.exe") {
-            & "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v dist\TWRankings*.exe
-          } else {
-            echo "ERROR: EXE not found!"
+          $signtool = Get-Command -ErrorAction SilentlyContinue -Name "signtool.exe" | Select-Object -ExpandProperty Source
+          if (-not $signtool) {
+            Write-Host "ERROR: SignTool not found!"
             exit 1
           }
+          & $signtool sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v "dist/TWRankings/TWRankings.exe"
+        shell: powershell
 
       - name: Commit and push EXE if it exists
         run: |
