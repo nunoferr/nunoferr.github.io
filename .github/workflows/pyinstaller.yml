@@ -47,6 +47,14 @@ jobs:
           echo "Checking dist/ directory..."
           dir dist  # List contents of dist/ folder to confirm EXE is created
 
+      - name: Decode and Store Signing Certificate
+        run: |
+          echo "${{ secrets.SIGNING_CERTIFICATE_BASE64 }}" | base64 --decode > signing_certificate.pfx
+
+      - name: Sign EXE
+        run: |
+          & "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign /f signing_certificate.pfx /p ${{ secrets.CERTIFICATE_PASSWORD }} /tr http://timestamp.digicert.com /fd SHA256 /v dist/your_exe.exe
+
       - name: Find and sign executable file
         run: |
           $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
@@ -57,7 +65,7 @@ jobs:
             exit 1
           }
           Write-Host "Using SignTool at: $signtool"
-          & $signtool sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v "TribalWars/Staff-Scripts/TWRankings/dist/TWRankings.exe"
+          & $signtool sign /f signing_certificate.pfx /p ${{ secrets.CERTIFICATE_PASSWORD }} /tr http://timestamp.digicert.com /fd SHA256 /v dist/TWRankings.exe
 
         shell: powershell
 
