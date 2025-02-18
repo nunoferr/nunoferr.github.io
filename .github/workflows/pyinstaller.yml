@@ -49,7 +49,8 @@ jobs:
 
       - name: Decode and Store Signing Certificate
         run: |
-          echo "${{ secrets.SIGNING_CERTIFICATE_BASE64 }}" | base64 --decode > signing_certificate.pfx
+          $base64String = "${{ secrets.SIGNING_CERTIFICATE_BASE64 }}"
+          [System.IO.File]::WriteAllBytes("signing_certificate.pfx", [Convert]::FromBase64String($base64String))
 
       - name: Sign EXE
         run: |
