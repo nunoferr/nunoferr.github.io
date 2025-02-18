@@ -52,14 +52,15 @@ jobs:
           choco install windows-sdk-10 -y
         shell: powershell
 
-      - name: Create Certificate
+      - name: Find and sign executable file
         run: |
-          $signtool = Get-Command -ErrorAction SilentlyContinue -Name "signtool.exe" | Select-Object -ExpandProperty Source
+          $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe | Select-Object -ExpandProperty FullName -First 1
           if (-not $signtool) {
             Write-Host "ERROR: SignTool not found!"
             exit 1
           }
-          & $signtool sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v "dist/TWRankings/TWRankings.exe"
+          Write-Host "Using SignTool at: $signtool"
+          & $signtool sign /a /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 /v "TribalWars/Staff-Scripts/TWRankings/dist/TWRankings.exe"
         shell: powershell
 
       - name: Commit and push EXE if it exists
