@@ -70,9 +70,8 @@ jobs:
             Write-Host "ERROR: SignTool (x64) not found!"
             exit 1
           }
-          cd TribalWars/Staff-Scripts/TWRankings
           Write-Host "Using SignTool at: $signtool"
-          & $signtool sign /f signing_certificate.pfx /p ${{ secrets.CERTIFICATE_PASSWORD }} /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 dist/TWRankings*.exe
+          & $signtool sign /f signing_certificate.pfx /p ${{ secrets.CERTIFICATE_PASSWORD }} /tr http://timestamp.digicert.com /fd SHA256 /td SHA256 TribalWars/Staff-Scripts/TWRankings/dist/TWRankings*.exe
 
         shell: powershell
 
