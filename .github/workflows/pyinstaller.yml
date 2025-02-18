@@ -57,7 +57,8 @@ jobs:
           if (Test-Path "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe") {
             Write-Host "SignTool found!"
           } else {
-            Write-Host "SignTool not found"
+            Write-Host "SignTool not found. Installing Windows SDK..."
+            choco install windows-sdk-10.0
           }
 
       - name: Sign EXE
