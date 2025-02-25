@@ -7,9 +7,9 @@ Script Name: TW Rankings fetcher
 Description: This script allows users to take screenshots of the ranking pages
 on TW Stats for all open worlds and servers.
 
-Version: 1.0.5-rc4
+Version: 1.0.0-rc5
 Created on: 26/01/2025
-Last Updated: 18/02/2025
+Last Updated: 25/02/2025
 
 Author(s):
     Nuno Ferreira - Sole Developer
@@ -64,7 +64,7 @@ from datetime import datetime
 def clear(): return print('\n' * 200)
 
 
-version = "1.0.5-rc.4"
+version = "1.0.0-rc.5"
 
 print("\n-------------------------------")
 print(f"TW Rankings fetcher\nVersion {version}\n\nDeveloped by: NunoF- (.com.pt)")
