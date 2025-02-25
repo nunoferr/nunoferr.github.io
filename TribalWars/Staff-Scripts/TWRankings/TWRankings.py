@@ -146,7 +146,14 @@ def getWorlds(server):
             print(f"No span found inside {link.text}")
     return worlds
 
-def getWorldsWanted(worlds):
+
+def checkIfValidWorld(server, world):
+    url = serversList[server][0].replace("www", world) + "guest.php"
+    driver.get(url)
+    return driver.current_url == url
+
+
+def getWorldsWanted(server, worlds):
     clear();
     worldWanted = []
     while (True):
@@ -154,7 +161,8 @@ def getWorldsWanted(worlds):
         for world in worlds:
             if (world not in worldWanted):
                 print(world)
-        print("all -> Select all servers\n")
+        print("all -> Select all servers (except speeds)")
+        print(f"Speed worlds are NOT LISTED, but can be inserted, such as: {server}s1\n")
         print("next -> Go to next step.\n\nTo remove a world from the selected list, re-insert it.\n")
 
         print("Selected worlds")
@@ -172,12 +180,15 @@ def getWorldsWanted(worlds):
             if len(worldWanted) > 0: break;
             else: print("Please select at least 1 world before exiting.")
         else:
-            if world not in worlds:
+            if world not in worlds and world[:3] != server + "s":
                 print("\nInvalid world, please try again")
             elif(world in worldWanted):
                 worldWanted.remove(world)
             else:
-                worldWanted.append(world)
+                if world[:3] == server + "s" and not checkIfValidWorld(server, world):
+                    print(f"Speed world code inserted, but the world doesn't exist")
+                else:
+                    worldWanted.append(world)
     return worldWanted;
 
 def createRankingsFolder(server, now, world):
@@ -345,7 +356,7 @@ while(IntendsOnContinuing == "1"):
     driver.set_window_size(1920, 1480)
     server = getServer()
     worlds = getWorlds(server)
-    worldWanted = getWorldsWanted(worlds)
+    worldWanted = getWorldsWanted(server, worlds)
     saveWorldToFolder(server, worldWanted)
     IntendsOnContinuing = input("\n\nDo you wish to continue fetching rankings?\nInsert \"1\" and enter if you do, otherwise, press enter to quit.\nAnswer: ").strip()
 
