@@ -85,32 +85,32 @@ worlds = []
 
 
 serversList = {
-    "net": ("http://www.tribalwars.net/", "http://www.twstats.com/"),
-    "se": ("http://www.tribalwars.se/", "http://se.twstats.com/"),
-    "nl": ("http://www.tribalwars.nl/", "http://nl.twstats.com/"),
-    "br": ("http://www.tribalwars.com.br/", "http://br.twstats.com/"),
-    "ro": ("http://www.triburile.ro/", "http://ro.twstats.com/"),
-    "no": ("http://no.tribalwars.com/", "http://no.twstats.com/"),
-    "pt": ("https://www.tribalwars.com.pt/", "http://pt.twstats.com/"),
-    "gr": ("http://www.fyletikesmaxes.gr/", "http://gr.twstats.com/"),
-    "sk": ("http://www.divoke-kmene.sk/", "http://sk.twstats.com/"),
-    "hu": ("http://www.klanhaboru.hu/", "http://hu.twstats.com/"),
-    "cz": ("http://www.divokekmeny.cz/", "http://cz.twstats.com/"),
-    "es": ("http://www.guerrastribales.es/", "http://es.twstats.com/"),
-    "it": ("http://www.tribals.it/", "http://it.twstats.com/"),
-    "fr": ("http://www.guerretribale.fr/", "http://fr.twstats.com/"),
-    "tr": ("http://www.klanlar.org/", "http://tr.twstats.com/"),
-    "ae": ("http://www.tribalwars.ae/", "http://ae.twstats.com/"),
-    "uk": ("http://www.tribalwars.co.uk/", "http://www.twstats.co.uk/"),
-    "de": ("http://www.die-staemme.de/", "http://de.twstats.com/"),
-    "pl": ("http://www.plemiona.pl/", "http://pl.twstats.com/"),
-    "si": ("http://www.vojnaplemen.si/", "http://si.twstats.com/"),
-    "hr": ("http://www.plemena.com/", "http://hr.twstats.com/"),
-    "beta": ("https://www.tribalwars.works/", "http://beta.twstats.com/"),
-    "th": ("http://www.tribalwars.asia/", "http://th.twstats.com/"),
-    "us": ("http://www.tribalwars.us/", "http://us.twstats.com/"),
-    "ru": ("https://www.voynaplemyon.com/", "http://ru.twstats.com/"),
-    "ch": ("http://www.staemme.ch/", "http://ch.twstats.com/")
+    "net": ("https://www.tribalwars.net/", "https://www.twstats.com/", "en"),
+    "se": ("https://www.tribalwars.se/", "https://se.twstats.com/", "sv"),
+    "nl": ("https://www.tribalwars.nl/", "https://nl.twstats.com/", "np"),
+    "br": ("https://www.tribalwars.com.br/", "https://br.twstats.com/", "br"),
+    "ro": ("https://www.triburile.ro/", "https://ro.twstats.com/", "ro"),
+    "no": ("https://no.tribalwars.com/", "https://no.twstats.com/", "no"),
+    "pt": ("https://www.tribalwars.com.pt/", "https://pt.twstats.com/", "pt"),
+    "gr": ("https://www.fyletikesmaxes.gr/", "https://gr.twstats.com/", "gr"),
+    "sk": ("https://www.divoke-kmene.sk/", "https://sk.twstats.com/", "sk"),
+    "hu": ("https://www.klanhaboru.hu/", "https://hu.twstats.com/", "hu"),
+    "cz": ("https://www.divokekmeny.cz/", "https://cz.twstats.com/", "cs"),
+    "es": ("https://www.guerrastribales.es/", "https://es.twstats.com/", "es"),
+    "it": ("https://www.tribals.it/", "https://it.twstats.com/", "it"),
+    "fr": ("https://www.guerretribale.fr/", "https://fr.twstats.com/", "fr"),
+    "tr": ("https://www.klanlar.org/", "https://tr.twstats.com/", "tr"),
+    "ae": ("https://www.tribalwars.ae/", "https://ae.twstats.com/", "ae"),
+    "uk": ("https://www.tribalwars.co.uk/", "https://www.twstats.co.uk/", "uk"),
+    "de": ("https://www.die-staemme.de/", "https://de.twstats.com/", "de"),
+    "pl": ("https://www.plemiona.pl/", "https://pl.twstats.com/", "pl"),
+    "si": ("https://www.vojnaplemen.si/", "https://si.twstats.com/", "si"),
+    "hr": ("https://www.plemena.com/", "https://hr.twstats.com/", "hr"),
+    "beta": ("https://www.tribalwars.works/", "https://beta.twstats.com/", "zz"),
+    "th": ("https://www.tribalwars.asia/", "https://th.twstats.com/", "th"),
+    "us": ("https://www.tribalwars.us/", "https://us.twstats.com/", "us"),
+    "ru": ("https://www.voynaplemyon.com/", "https://ru.twstats.com/", "ru"),
+    "ch": ("https://www.staemme.ch/", "https://ch.twstats.com/", "ch")
 }
 
 def getServer():
@@ -153,8 +153,9 @@ def checkIfValidWorld(server, world):
     return driver.current_url == url
 
 
-def getWorldsWanted(server, worlds):
+def getWorldsWanted(server):
     clear();
+    worldBeingCode = serversList[server][2]
     worldWanted = []
     while (True):
         print("\n\n-------------------------------\nWhich worlds do you want to get screenshots from?\n-------------------------------\n")
@@ -162,7 +163,7 @@ def getWorldsWanted(server, worlds):
             if (world not in worldWanted):
                 print(world)
         print("all -> Select all servers (except speeds)")
-        print(f"Speed worlds are NOT LISTED, but can be inserted, such as: {server}s1\n")
+        print(f"Speed worlds are NOT LISTED, but can be inserted, such as: {worldBeingCode}s1\n")
         print("next -> Go to next step.\n\nTo remove a world from the selected list, re-insert it.\n")
 
         print("Selected worlds")
@@ -180,12 +181,12 @@ def getWorldsWanted(server, worlds):
             if len(worldWanted) > 0: break;
             else: print("Please select at least 1 world before exiting.")
         else:
-            if world not in worlds and world[:3] != server + "s":
+            if world not in worlds and world[:3] != worldBeingCode + "s":
                 print("\nInvalid world, please try again")
             elif(world in worldWanted):
                 worldWanted.remove(world)
             else:
-                if world[:3] == server + "s" and not checkIfValidWorld(server, world):
+                if world[:3] == worldBeingCode + "s" and not checkIfValidWorld(server, world):
                     print(f"Speed world code inserted, but the world doesn't exist")
                 else:
                     worldWanted.append(world)
@@ -356,7 +357,7 @@ while(IntendsOnContinuing == "1"):
     driver.set_window_size(1920, 1480)
     server = getServer()
     worlds = getWorlds(server)
-    worldWanted = getWorldsWanted(server, worlds)
+    worldWanted = getWorldsWanted(server)
     saveWorldToFolder(server, worldWanted)
     IntendsOnContinuing = input("\n\nDo you wish to continue fetching rankings?\nInsert \"1\" and enter if you do, otherwise, press enter to quit.\nAnswer: ").strip()
 
