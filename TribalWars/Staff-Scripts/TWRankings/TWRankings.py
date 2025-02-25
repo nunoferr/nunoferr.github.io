@@ -244,18 +244,24 @@ def waitForAnimation(animationName, driver):
 
 def savePlayerOrAllyPage(driver, screenshotsPath, server, world, mode):
     elementsToRemove = driver.find_elements(By.CSS_SELECTOR, "#content_value table td:has(div.ranking-top3) table:not(:first-of-type)")
-    extraHeightToRemove = sum(el.size['height'] for el in elementsToRemove)
-    element = driver.find_element(By.CSS_SELECTOR, "#content_value table td:has(div.ranking-top3)")
-    fullPageScreenshot = createFullScreenshotFile(driver, screenshotsPath)
-    cropImage(server, world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'], element.location['y'] + element.size['height'] - extraHeightToRemove);
+    if elementsToRemove:
+        extraHeightToRemove = sum(el.size['height'] for el in elementsToRemove)
+        element = driver.find_element(By.CSS_SELECTOR, "#content_value table td:has(div.ranking-top3)")
+        fullPageScreenshot = createFullScreenshotFile(driver, screenshotsPath)
+        cropImage(server, world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'], element.location['y'] + element.size['height'] - extraHeightToRemove);
+    else:
+        print(f"No {mode}'s found on {mode} page.")
 
 
 def saveDominancePage(driver, screenshotsPath, server, world, mode):
-    waitForAnimation("Dominance load bar", driver)
-    bothTables = driver.find_elements(By.CSS_SELECTOR, "#content_value table table:not(:first-child)")
-    element = bothTables[0]
-    fullPageScreenshot = createFullScreenshotFile(driver, screenshotsPath)
-    cropImage(server, world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'] + bothTables[1].size['width'] + 11, element.location['y'] + element.size['height']);
+    if driver.find_elements(By.CSS_SELECTOR, "#content_value table table:not(:first-child)"):
+        waitForAnimation("Dominance load bar", driver)
+        bothTables = driver.find_elements(By.CSS_SELECTOR, "#content_value table table:not(:first-child)")
+        element = bothTables[0]
+        fullPageScreenshot = createFullScreenshotFile(driver, screenshotsPath)
+        cropImage(server, world, mode, screenshotsPath, Image.open(fullPageScreenshot), element.location['x'], element.location['y'], element.location['x'] + element.size['width'] + bothTables[1].size['width'] + 11, element.location['y'] + element.size['height']);
+    else:
+        print(f"No {mode} element found on {mode} page.")
 
 
 def saveKillAllyKillPlayerPage(driver, screenshotsPath, server, world, mode):
