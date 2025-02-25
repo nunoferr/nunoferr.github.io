@@ -7,7 +7,7 @@ Script Name: TW Rankings fetcher
 Description: This script allows users to take screenshots of the ranking pages
 on TW Stats for all open worlds and servers.
 
-Version: 1.0.0-rc5
+Version: 1.0.2-rc5
 Created on: 26/01/2025
 Last Updated: 25/02/2025
 
@@ -64,7 +64,7 @@ from datetime import datetime
 def clear(): return print('\n' * 200)
 
 
-version = "1.0.0-rc.5"
+version = "1.0.2-rc.5"
 
 print("\n-------------------------------")
 print(f"TW Rankings fetcher\nVersion {version}\n\nDeveloped by: NunoF- (.com.pt)")
@@ -149,6 +149,7 @@ def getWorlds(server):
 
 def checkIfValidWorld(server, world):
     url = serversList[server][0].replace("www", world) + "guest.php"
+    print("url: " + url)
     driver.get(url)
     return driver.current_url == url
 
@@ -282,7 +283,7 @@ def removeTempFile(screenshotsPath):
     fullPageScreenshot = os.path.join(screenshotsPath, "fullPageScreenshot.png")
     os.remove(fullPageScreenshot)
     print(f"Temporary screenshot deleted: {fullPageScreenshot}")
-
+    
 
 def saveWorldToFolder(server, worldWanted):
     clear();
