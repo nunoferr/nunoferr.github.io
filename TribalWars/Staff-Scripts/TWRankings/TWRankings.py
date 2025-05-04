@@ -7,9 +7,9 @@ Script Name: TW Rankings fetcher
 Description: This script allows users to take screenshots of the ranking pages
 on TW Stats for all open worlds and servers.
 
-Version: 1.0.2-rc5
+Version: 1.0.6-rc1
 Created on: 26/01/2025
-Last Updated: 25/02/2025
+Last Updated: 04/04/2025
 
 Author(s):
     Nuno Ferreira - Sole Developer
@@ -64,7 +64,7 @@ from datetime import datetime
 def clear(): return print('\n' * 200)
 
 
-version = "1.0.2-rc.5"
+version = "1.0.6-rc1"
 
 print("\n-------------------------------")
 print(f"TW Rankings fetcher\nVersion {version}\n\nDeveloped by: NunoF- (.com.pt)")
@@ -293,8 +293,10 @@ def saveWorldToFolder(server, worldWanted):
             screenshotsPath = createRankingsFolder(server, now, world)
             for mode in ["player", "ally", "dominance", "kill_ally", "kill_player", "wars"]:
                 url = serversList[server][0].replace("www", world) + "guest.php?screen=ranking&mode=" + mode
+                if mode in ["kill_player", "kill_ally"]:
+                    url += "&type=all"
                 print(url)
-                driver.get(url)                        
+                driver.get(url)                   
                 if mode in ["player", "ally"]:
                     savePlayerOrAllyPage(driver, screenshotsPath, server, world, mode)
                 elif mode == "dominance":
