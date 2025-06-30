@@ -7,7 +7,7 @@ Script Name: TW Rankings fetcher
 Description: This script allows users to take screenshots of the ranking pages
 on TW Stats for all open worlds and servers.
 
-Version: 1.0.6-rc2
+Version: 1.0.8-rc2
 Created on: 26/01/2025
 Last Updated: 30/06/2025
 
