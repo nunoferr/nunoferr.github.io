@@ -7,9 +7,9 @@ Script Name: TW Rankings fetcher
 Description: This script allows users to take screenshots of the ranking pages
 on TW Stats for all open worlds and servers.
 
-Version: 1.0.6-rc1
+Version: 1.0.6-rc2
 Created on: 26/01/2025
-Last Updated: 04/04/2025
+Last Updated: 10/06/2025
 
 Author(s):
     Nuno Ferreira - Sole Developer
@@ -48,6 +48,10 @@ import sys
 import os
 import time
 import ctypes
+import platform
+import shutil
+import argparse
+
 from PIL import Image
 
 from selenium import webdriver
@@ -70,82 +74,113 @@ print("\n-------------------------------")
 print(f"TW Rankings fetcher\nVersion {version}\n\nDeveloped by: NunoF- (.com.pt)")
 print("-------------------------------\n")
 print("Your screenshots will be saved to " + os.path.join(os.path.expanduser("~"), "Documents", "TW-Rankings"))
-print("\n\nPlease wait...\n")
+print("\n\nLoading optinal parameters...")
+
+parser = argparse.ArgumentParser()
+
+worlds = []
+serversList = {
+    "net": ("https://www.tribalwars.net/", "en"),
+    "se": ("https://www.tribalwars.se/", "sv"),
+    "nl": ("https://www.tribalwars.nl/", "np"),
+    "br": ("https://www.tribalwars.com.br/", "br"),
+    "ro": ("https://www.triburile.ro/", "ro"),
+    "pt": ("https://www.tribalwars.com.pt/", "pt"),
+    "gr": ("https://www.fyletikesmaxes.gr/", "gr"),
+    "sk": ("https://www.divoke-kmene.sk/", "sk"),
+    "hu": ("https://www.klanhaboru.hu/", "hu"),
+    "cz": ("https://www.divokekmeny.cz/", "cs"),
+    "es": ("https://www.guerrastribales.es/", "es"),
+    "it": ("https://www.tribals.it/", "it"),
+    "fr": ("https://www.guerretribale.fr/", "fr"),
+    "tr": ("https://www.klanlar.org/", "tr"),
+    "ae": ("https://www.tribalwars.ae/", "ae"),
+    "uk": ("https://www.tribalwars.co.uk/", "uk"),
+    "de": ("https://www.die-staemme.de/", "de"),
+    "pl": ("https://www.plemiona.pl/", "pl"),
+    "si": ("https://www.vojnaplemen.si/", "si"),
+    "hr": ("https://www.plemena.com/", "hr"),
+    "beta": ("https://www.tribalwars.works/", "zz"),
+    "th": ("https://www.tribalwars.asia/", "th"),
+    "us": ("https://www.tribalwars.us/", "us"),
+    "ru": ("https://www.voynaplemyon.com/", "ru"),
+    "ch": ("https://www.staemme.ch/", "ch")
+}
+
+parser.add_argument('--server', required=False, default='')
+
+parser.add_argument('--worlds', nargs='+', required=False, default=[])
+
+args = parser.parse_args()
+
+selected_server = args.server.lower()
+selected_worlds = []
+
+if selected_server == '':
+    print("Optional server code is not present.")
+elif selected_server not in serversList:
+    print(f"\nServer code {selected_server} is invalid. Reseting to null.")
+    selected_server = ''
+else:
+    print(f"\nServer set to: {selected_server}")
+    selected_worlds = list(map(str.lower, args.worlds))
+
+print("\nFinished fetching optinal parameters")
+
+
+print("\n\nSetting up driver\nPlease wait...\n")
 
 # Set up Selenium to run in headless mode (invisible browser)
 chrome_options = Options()
 chrome_options.add_argument("--headless")  # Run browser in headless mode
 chrome_options.add_argument("--disable-gpu")  # Disable GPU acceleration
 chrome_options.add_argument("--no-sandbox")  # Required for some environments
+chrome_options.add_argument("--log-level=3")
 
+def get_chromedriver_service():
+    system = platform.system().lower()
+    machine = platform.machine().lower()
 
-service = Service(ChromeDriverManager().install())
-worlds = []
+    if system == "linux" and (machine == "aarch64" or machine.startswith("arm")):
+        # ARM64 Linux: use system-installed chromedriver
+        chromedriver_path = shutil.which("chromedriver")
+        if chromedriver_path is None:
+            raise RuntimeError(
+                "chromedriver not found in PATH on ARM64 Linux.\n"
+                "Please install it via: sudo apt install chromium-driver"
+            )
+        return Service(chromedriver_path)
+    # For Windows, macOS, and x86_64 Linux, use webdriver_manager
+    return Service(ChromeDriverManager().install())
 
-
-
-serversList = {
-    "net": ("https://www.tribalwars.net/", "https://www.twstats.com/", "en"),
-    "se": ("https://www.tribalwars.se/", "https://se.twstats.com/", "sv"),
-    "nl": ("https://www.tribalwars.nl/", "https://nl.twstats.com/", "np"),
-    "br": ("https://www.tribalwars.com.br/", "https://br.twstats.com/", "br"),
-    "ro": ("https://www.triburile.ro/", "https://ro.twstats.com/", "ro"),
-    "no": ("https://no.tribalwars.com/", "https://no.twstats.com/", "no"),
-    "pt": ("https://www.tribalwars.com.pt/", "https://pt.twstats.com/", "pt"),
-    "gr": ("https://www.fyletikesmaxes.gr/", "https://gr.twstats.com/", "gr"),
-    "sk": ("https://www.divoke-kmene.sk/", "https://sk.twstats.com/", "sk"),
-    "hu": ("https://www.klanhaboru.hu/", "https://hu.twstats.com/", "hu"),
-    "cz": ("https://www.divokekmeny.cz/", "https://cz.twstats.com/", "cs"),
-    "es": ("https://www.guerrastribales.es/", "https://es.twstats.com/", "es"),
-    "it": ("https://www.tribals.it/", "https://it.twstats.com/", "it"),
-    "fr": ("https://www.guerretribale.fr/", "https://fr.twstats.com/", "fr"),
-    "tr": ("https://www.klanlar.org/", "https://tr.twstats.com/", "tr"),
-    "ae": ("https://www.tribalwars.ae/", "https://ae.twstats.com/", "ae"),
-    "uk": ("https://www.tribalwars.co.uk/", "https://www.twstats.co.uk/", "uk"),
-    "de": ("https://www.die-staemme.de/", "https://de.twstats.com/", "de"),
-    "pl": ("https://www.plemiona.pl/", "https://pl.twstats.com/", "pl"),
-    "si": ("https://www.vojnaplemen.si/", "https://si.twstats.com/", "si"),
-    "hr": ("https://www.plemena.com/", "https://hr.twstats.com/", "hr"),
-    "beta": ("https://www.tribalwars.works/", "https://beta.twstats.com/", "zz"),
-    "th": ("https://www.tribalwars.asia/", "https://th.twstats.com/", "th"),
-    "us": ("https://www.tribalwars.us/", "https://us.twstats.com/", "us"),
-    "ru": ("https://www.voynaplemyon.com/", "https://ru.twstats.com/", "ru"),
-    "ch": ("https://www.staemme.ch/", "https://ch.twstats.com/", "ch")
-}
+service = get_chromedriver_service()
 
 def getServer():
-    clear();
+    clear()
     while (True):
         print("\n\n-------------------------------\nWhich server do you want to fetch the rankings from?\n-------------------------------\n")
         for server, paths in serversList.items():
-            print(server + " -> " + paths[1])
+            print(server + " -> " + paths[0])
         serverCode = input("\nPlease insert your server code: ").strip().lower();
         if serverCode in serversList:
             return serverCode
         print("Invalid server, please try again")
 
 def getWorlds(server):
-    clear();
+    clear()
     worlds = []
-    print(f"Fetching {serversList[server][1]}... (this might take awhile due to how slow this platform usually is)")
-    driver.get(serversList[server][1])
+    print(f"Fetching {serversList[server][0] + "page/stats"}... (this might take awhile due to how slow this platform usually is)")
+    driver.get(serversList[server][0] + "page/stats")
 
     links = driver.find_elements(By.CSS_SELECTOR, "#main table.widget table tr td:last-child")
+    elements = driver.find_elements(By.CSS_SELECTOR, ".pull-right > .content-selector")
 
-    valid_links = [link for link in links if "(closed)" not in link.text]
-    for link in valid_links:
-        try:
-            spanObj = link.find_element(By.TAG_NAME, 'span')
-            if not spanObj.text.strip()[0] == "0" and spanObj.text.strip()[0].isdigit():
-                try:
-                    aObj = link.find_element(By.TAG_NAME, 'a')
-                    worlds.append(aObj.get_attribute('href').split('/')[3])
-                except:
-                    print(f"No a found inside {link.text}")
-        except:
-            print(f"No span found inside {link.text}")
+    if len(elements) > 1:
+        second_selector = elements[1]
+        links = second_selector.find_elements(By.CSS_SELECTOR, "li > a")
+        for link in links:
+            worlds.append(link.get_attribute("href").split("://")[1].split(".")[0])
     return worlds
-
 
 def checkIfValidWorld(server, world):
     url = serversList[server][0].replace("www", world) + "guest.php"
@@ -154,9 +189,9 @@ def checkIfValidWorld(server, world):
     return driver.current_url == url
 
 
-def getWorldsWanted(server):
+def getWorldsWanted(server, worlds):
     clear();
-    worldBeingCode = serversList[server][2]
+    worldBeingCode = serversList[server][1]
     worldWanted = []
     while (True):
         print("\n\n-------------------------------\nWhich worlds do you want to get screenshots from?\n-------------------------------\n")
@@ -164,11 +199,8 @@ def getWorldsWanted(server):
             if (world not in worldWanted):
                 print(world)
         print("all -> Select all servers (except speeds)")
-        print(f"Speed worlds are NOT LISTED, but can be inserted, such as: {worldBeingCode}s1\n")
         print("next -> Go to next step.\n\nTo remove a world from the selected list, re-insert it.\n")
-
         print("Selected worlds")
-        
         for worldW in worldWanted:
             print(worldW)
         if (len(worldWanted) == 0):
@@ -177,20 +209,16 @@ def getWorldsWanted(server):
         world = input("\nPlease insert a world code: ").strip().lower();
         clear();
         if world == "all":
-            worldWanted = [] if worldWanted == worlds else worlds
+            worldWanted = [] if worldWanted == worlds else worlds.copy()
         elif world == "next":
             if len(worldWanted) > 0: break;
             else: print("Please select at least 1 world before exiting.")
-        else:
-            if world not in worlds and world[:3] != worldBeingCode + "s":
+        elif world not in worlds:
                 print("\nInvalid world, please try again")
-            elif(world in worldWanted):
-                worldWanted.remove(world)
-            else:
-                if world[:3] == worldBeingCode + "s" and not checkIfValidWorld(server, world):
-                    print(f"Speed world code inserted, but the world doesn't exist")
-                else:
-                    worldWanted.append(world)
+        elif(world in worldWanted):
+            worldWanted.remove(world)
+        else:
+            worldWanted.append(world)
     return worldWanted;
 
 def createRankingsFolder(server, now, world):
@@ -364,10 +392,21 @@ IntendsOnContinuing = "1"
 while(IntendsOnContinuing == "1"):
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.set_window_size(1920, 1480)
-    server = getServer()
-    worlds = getWorlds(server)
-    worldWanted = getWorldsWanted(server)
+    server = selected_server or getServer()
+    is_task_run = True
+    if not selected_worlds:
+        is_task_run = False
+        worlds = getWorlds(server)
+        worldWanted = getWorldsWanted(server, worlds)
+    elif selected_worlds[0] == 'all':
+        worldWanted = getWorlds(server)
+    else:
+        worldWanted = selected_worlds
+            
     saveWorldToFolder(server, worldWanted)
+    if is_task_run:
+        break
+    
     IntendsOnContinuing = input("\n\nDo you wish to continue fetching rankings?\nInsert \"1\" and enter if you do, otherwise, press enter to quit.\nAnswer: ").strip()
 
 
