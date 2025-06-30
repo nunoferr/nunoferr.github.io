@@ -9,7 +9,7 @@ on TW Stats for all open worlds and servers.
 
 Version: 1.0.6-rc2
 Created on: 26/01/2025
-Last Updated: 10/06/2025
+Last Updated: 30/06/2025
 
 Author(s):
     Nuno Ferreira - Sole Developer
