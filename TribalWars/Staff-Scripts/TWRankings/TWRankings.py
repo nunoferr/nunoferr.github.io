@@ -390,22 +390,28 @@ def saveWorldToFolder(server, worldWanted):
     
 IntendsOnContinuing = "1"
 while(IntendsOnContinuing == "1"):
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    driver.set_window_size(1920, 1480)
-    server = selected_server or getServer()
-    is_task_run = True
-    if not selected_worlds:
-        is_task_run = False
-        worlds = getWorlds(server)
-        worldWanted = getWorldsWanted(server, worlds)
-    elif selected_worlds[0] == 'all':
-        worldWanted = getWorlds(server)
-    else:
-        worldWanted = selected_worlds
-            
-    saveWorldToFolder(server, worldWanted)
-    if is_task_run:
-        break
+    try:    
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver.set_window_size(1920, 1480)
+        server = selected_server or getServer()
+        is_task_run = True
+        if not selected_worlds:
+            is_task_run = False
+            worlds = getWorlds(server)
+            worldWanted = getWorldsWanted(server, worlds)
+        elif selected_worlds[0] == 'all':
+            worldWanted = getWorlds(server)
+        else:
+            worldWanted = selected_worlds
+                
+        saveWorldToFolder(server, worldWanted)
+        if is_task_run:
+            break
+    except BaseException as e:
+         print(f"\nException: {type(e).__name__}: {e}")
+         print("\n-------------------------------\n\t\tPLEASE WAIT\n\nTerminating the driver and force quitting the application\n-------------------------------\n")
+         driver.quit()
+         break
     
     IntendsOnContinuing = input("\n\nDo you wish to continue fetching rankings?\nInsert \"1\" and enter if you do, otherwise, press enter to quit.\nAnswer: ").strip()
 
