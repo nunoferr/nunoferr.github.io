@@ -273,6 +273,19 @@ MapSdk = {
         
         if (!village) continue;
 
+        // Fill the village tile with low opacity group color
+        if (village.groupId) {
+          let pos = this.pixelByCoord(x_s, y_s, x_c, y_c);
+          const halfScaleX = TWMap.map.scale[0] / 2;
+          const halfScaleY = TWMap.map.scale[1] / 2;
+          let baseX = pos[0] - halfScaleX + 4;
+          let baseY = pos[1] - halfScaleY + 4;
+          const W = TWMap.map.scale[0];
+          const H = TWMap.map.scale[1];
+          ctx.fillStyle = this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 0.1)');
+          ctx.fillRect(baseX, baseY, W, H);
+        }
+
         // Check all 8 neighbors (cardinal + diagonal) FIRST to know which borders exist
         const hasBorders = {
           north: village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c - 1),
