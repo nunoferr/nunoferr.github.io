@@ -504,7 +504,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       }
 
       this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : this.#legacyPoliticalMapRebornGroups();
-      this.unitUI();
+      this.initUI();
     }
 
     #generateUrl(screen, mode = null, extraParams = {}) {
@@ -643,7 +643,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       UI.SuccessMessage(this.UserTranslation.PoliticalMapRebornLoaded);
     }
 
-    async unitUI() {
+    async initUI() {
       if ($('#politicalMapRebornSettings').length) { // Prevent multiple UI instances
         this.runPoliticalMapReborn();
         return;
