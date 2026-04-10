@@ -412,7 +412,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           total: 'Total',
           loadingData: 'Loading data...',
           creatingAndPaintingClusters: 'Creating and painting clusters...',
-          PoliticalMapRebornLoaded: 'Political Map Reborn Loaded.',
+          politicalMapRebornLoaded: 'Political Map Reborn Loaded.',
           settings: {
             title: 'Political Map Reborn Settings'
           },
@@ -689,7 +689,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         return;
       }
 
-      UI.InfoMessage(this.UserTranslation.errors.creatingAndPaintingClusters);
+      UI.InfoMessage(this.UserTranslation.creatingAndPaintingClusters);
       // Double rAF: first fires before paint, second fires after paint completes
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       var politicalMapRebornGroups = { players: {}, allies: {}, groupsColors: {} };
@@ -705,15 +705,15 @@ if (typeof politicalMapReborn !== 'undefined') {
       });
       MapSdk.init(this.villagesMap, this.mapBounds, politicalMapRebornGroups);
       MapSdk.mapOverlay.reload();
-      UI.SuccessMessage(this.UserTranslation.errors.politicalMapRebornLoaded);
+      UI.SuccessMessage(this.UserTranslation.politicalMapRebornLoaded);
     }
 
     async initUI() {
-      if ($('#politicalMapRebornSettings').length) { // Prevent multiple UI instances
+      if ($('#politicalMapRebornSettings').length) {
         this.runPoliticalMapReborn();
         return;
-      };
-
+      }
+      
       UI.InfoMessage(this.UserTranslation.loadingData);
       var lastAPIVillageQuery = localStorage.getItem(this.lastQueryToTwApiText);
       if (
@@ -814,7 +814,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     </table>
   </div>
 
-  <div class="gm-flex" ${this.legacyPoliticalMapEnabled || !game_data.features.Premium.active ? 'style="display:none;"' : ''}>
+  <div class="gm-flex" id="politicalMapRebornCompleteOptions" ${this.legacyPoliticalMapEnabled || !game_data.features.Premium.active ? 'style="display:none;"' : ''}>
     <div class="gm-column">
      <table class="vis" id="player-color-select">
        <thead>
@@ -961,15 +961,16 @@ if (typeof politicalMapReborn !== 'undefined') {
       });
     }
 
-    toggleLegacyMap() {
+    async toggleLegacyMap() {
       if (!game_data.features.Premium.active) {
         UI.ErrorMessage(this.UserTranslation.premiumAccountHtml);
         return;
       }
       this.legacyPoliticalMapEnabled = !this.legacyPoliticalMapEnabled;
       localStorage.setItem(this.legacyPoliticalMapEnabledText, this.legacyPoliticalMapEnabled);
+      this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : this.#legacyPoliticalMapRebornGroups();
       $('#politicalMapRebornSettings .gm-flex').toggle();
-      this.init();
+      this.#refreshGroupsUI();
     }
 
     addGroup(e) {
