@@ -343,7 +343,7 @@ MapSdk = {
       }
     }
   },
-  mapOverlay: TWMap,
+  mapOverlay: typeof TWMap !== "undefined"  ? TWMap : null
 };
 
 if (typeof politicalMapReborn !== 'undefined') {
@@ -361,6 +361,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           settings: {
             title: 'Political Map Reborn Settings'
           },
+          errorNotMapScreen: 'You need to be on the map screen to run the Political Map Reborn.',
           runPoliticalMapReborn: 'Run Political Map Reborn',
           credits: 'Political Map Reborn script v0.1.0 by NunoF-',
         },
@@ -491,7 +492,17 @@ if (typeof politicalMapReborn !== 'undefined') {
       return groups;
     }
 
+    #isOnMapScreen() {
+        return game_data.screen === 'map';
+    }
+
     async init() {
+      if (!this.#isOnMapScreen()) {
+        UI.ErrorMessage(this.UserTranslation.errorNotMapScreen);
+        setTimeout(() => {window.location.href = this.#generateUrl('map');}, 1500);
+        return;
+      }
+
       this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : this.#legacyPoliticalMapRebornGroups();
       this.unitUI();
     }
