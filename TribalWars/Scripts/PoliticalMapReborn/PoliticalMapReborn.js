@@ -492,18 +492,12 @@ if (typeof politicalMapReborn !== 'undefined') {
     #legacyPoliticalMapRebornGroups() {
       var groups = {};
       $.each(TWMap.allyRelations, (allyId, relation) => { 
-        const groupName = relation === 'partner' ? 'Ally_TXT' : 'Enemy_TXT';
-        const allyGroupKey = "ally_" + allyId;
-        if (!groups[groupName]) {
-          groups[groupName] = {
-            'allies': {[allyGroupKey]: allyId},
+          groups[allyId] = {
+            'allies': { [allyId]: allyId },
             'color': relation === 'partner' ? 'rgb(0,160,244)' : 'rgb(244,0,0)',
-            'dataId': relation === 'partner' ? '1' : '2',
+            'dataId': "_" + allyId,
             'players': {}
           };
-        } else {
-          groups[groupName]['allies'][allyGroupKey] = allyId;
-        }
       });
       return groups;
     }
