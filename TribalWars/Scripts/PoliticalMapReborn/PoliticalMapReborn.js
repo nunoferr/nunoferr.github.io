@@ -361,8 +361,24 @@ if (typeof politicalMapReborn !== 'undefined') {
           settings: {
             title: 'Political Map Reborn Settings'
           },
-          errorNotMapScreen: 'You need to be on the map screen to run the Political Map Reborn.',
+          errors: {
+            notMapScreen: 'You need to be on the map screen to run the Political Map Reborn.',
+            noGroupsCreated: 'There are no groups created on Political Map Reborn.</br>Please create at least one group to run the map.',
+            groupNameRequired: 'The group\'s name cannot be empty.',
+            groupNameExists: 'Group name already exists',
+            playerNameRequired: 'Player name is required',
+            groupRequired: 'Group is required',
+            groupNotFound: 'Group does not exist',
+            playerAlreadyInGroup: 'Player already in a group',
+            playerNotFound: 'Player does not exist',
+            allyNameRequired: 'Ally name is required',
+            allyAlreadyInGroup: 'Ally already in a group',
+            allyNotFound: 'Ally does not exist'
+          },
           runPoliticalMapReborn: 'Run Political Map Reborn',
+          premiumAccountTitle: 'Premium Account',
+          premiumAccountHtml: 'A Premium Account is required to use Political Map Reborn\'s custom groups.',
+          premiumAccountMissing: 'You have a Premium Account active and can therefore use Political Map Reborn\'s custom groups!',
           credits: 'Political Map Reborn script v0.1.0 by NunoF-',
         },
       };
@@ -498,7 +514,7 @@ if (typeof politicalMapReborn !== 'undefined') {
 
     async init() {
       if (!this.#isOnMapScreen()) {
-        UI.ErrorMessage(this.UserTranslation.errorNotMapScreen);
+        UI.ErrorMessage(this.UserTranslation.errors.notMapScreen);
         setTimeout(() => {window.location.href = this.#generateUrl('map');}, 1500);
         return;
       }
@@ -620,11 +636,11 @@ if (typeof politicalMapReborn !== 'undefined') {
 
     async runPoliticalMapReborn() {
       if (Object.keys(this.groups).length === 0) {
-        UI.ErrorMessage('There are no groups created on Political Map Reborn.</br>Please create at least one group to run the map.');
+        UI.ErrorMessage(this.UserTranslation.errors.noGroupsCreated);
         return;
       }
 
-      UI.InfoMessage(this.UserTranslation.creatingAndPaintingClusters);
+      UI.InfoMessage(this.UserTranslation.errors.creatingAndPaintingClusters);
       // Double rAF: first fires before paint, second fires after paint completes
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       var politicalMapRebornGroups = { players: {}, allies: {}, groupsColors: {} };
@@ -640,7 +656,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       });
       MapSdk.init(this.villagesMap, this.mapBounds, politicalMapRebornGroups);
       MapSdk.mapOverlay.reload();
-      UI.SuccessMessage(this.UserTranslation.PoliticalMapRebornLoaded);
+      UI.SuccessMessage(this.UserTranslation.errors.politicalMapRebornLoaded);
     }
 
     async initUI() {
@@ -675,7 +691,15 @@ if (typeof politicalMapReborn !== 'undefined') {
         }
         #politicalMapRebornSettings .gm-section, .politicalMapRebornSettingsEditGroupModal .gm-section {
           margin: 0 auto 13px auto;
-          width: 250px;
+          width: 275px;
+        }
+        #politicalMapRebornSettings .gm-section .premium-icon {
+          width: 24px;
+          float: right;
+          padding: 2px 0px 0 0;
+        }
+        #politicalMapRebornSettings .gm-section .premium-icon.premium-icon-disabled {
+          opacity: 0.3;
         }
         #politicalMapRebornSettings .gm-flex, .politicalMapRebornSettingsEditGroupModal .gm-flex {
           display: flex;
@@ -729,17 +753,19 @@ if (typeof politicalMapReborn !== 'undefined') {
   <h2>Political Map Reborn Settings</h2>
 
   <div class="gm-section">
+    <img alt="" class="premium-icon premium_tooltip ${!game_data.features.Premium.active ? 'premium-icon-disabled' : ''}" src="https://yy1.tribalwars.vodka/graphic/premium/features/Premium_hint.png"
+    data-title='<h3>${this.UserTranslation.premiumAccountTitle}</h3> :: ${!game_data.features.Premium.active ? this.UserTranslation.premiumAccountHtml : this.UserTranslation.premiumAccountMissing}'>
     <table class="vis gm-table">
       <tbody>
         <tr>
-          <td><input type="checkbox" onclick="politicalMapReborn.toggleLegacyMap()" ${this.legacyPoliticalMapEnabled ? 'checked' : ''}></td>
+          <td><input type="checkbox" onclick="politicalMapReborn.toggleLegacyMap()" ${this.legacyPoliticalMapEnabled || !game_data.features.Premium.active ? 'checked' : ''}></td>
           <th>Enable legacy Political Map</th>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <div class="gm-flex" ${this.legacyPoliticalMapEnabled ? 'style="display:none;"' : ''}>
+  <div class="gm-flex" ${this.legacyPoliticalMapEnabled || !game_data.features.Premium.active ? 'style="display:none;"' : ''}>
     <div class="gm-column">
      <table class="vis" id="player-color-select">
        <thead>
@@ -826,9 +852,12 @@ if (typeof politicalMapReborn !== 'undefined') {
           ${this.UserTranslation.credits}
         </div>`).insertAfter($("#map_whole"));
 
+      // UI - Set tooltip to premium icon
+      UI.ToolTip($(".premium_tooltip")) 
+
       // UI - Init UI for player/ally auto complete
       UI.init();
-
+      
       this.runPoliticalMapReborn();
     }
 
@@ -884,6 +913,10 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     toggleLegacyMap() {
+      if (!game_data.features.Premium.active) {
+        UI.ErrorMessage(this.UserTranslation.premiumAccountHtml);
+        return;
+      }
       this.legacyPoliticalMapEnabled = !this.legacyPoliticalMapEnabled;
       localStorage.setItem(this.legacyPoliticalMapEnabledText, this.legacyPoliticalMapEnabled);
       $('#politicalMapRebornSettings .gm-flex').toggle();
@@ -893,8 +926,8 @@ if (typeof politicalMapReborn !== 'undefined') {
     addGroup(e) {
       e.preventDefault();
       const groupName = $('#politicalMapRebornGroupName').val().trim();
-      if (!groupName) return UI.ErrorMessage('Group name is required');
-      if (this.groups[groupName]) return UI.ErrorMessage('Group name already exists');
+      if (!groupName) return UI.ErrorMessage(this.UserTranslation.errors.groupNameRequired);
+      if (this.groups[groupName]) return UI.ErrorMessage(this.UserTranslation.errors.groupNameExists);
       
       // Generate URL using generateUrl method
       const url = this.#generateUrl('map', null, { type: 'for', action: 'add_for_group' });
@@ -928,7 +961,7 @@ if (typeof politicalMapReborn !== 'undefined') {
             });
             
             if (targetDiv.length === 0) {
-              UI.ErrorMessage('Failed to create group - group not found on map');
+              UI.ErrorMessage(this.UserTranslation.errors.groupNotFound);
               return;
             }
             
@@ -958,12 +991,12 @@ if (typeof politicalMapReborn !== 'undefined') {
             UI.SuccessMessage('Group created successfully');
           } catch (error) {
             console.error('Failed to fetch map page for data-id:', error);
-            UI.ErrorMessage('Failed to create group - could not verify creation');
+            UI.ErrorMessage(this.UserTranslation.errors.failedToCreateGroup);
             return;
           }
         },
         error: () => {
-          UI.ErrorMessage('Failed to create group');
+          UI.ErrorMessage(this.UserTranslation.errors.failedToCreateGroup);
         }
       });
     }
@@ -973,7 +1006,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       const newName = $('#politicalMapRebornEditGroupName').val().trim();
       const newColorHex = $('#politicalMapRebornEditGroupColor').val();
       
-      if (!newName) return UI.ErrorMessage('The group\'s name cannot be empty.');
+      if (!newName) return UI.ErrorMessage(this.UserTranslation.errors.groupNameRequired);
       
       const oldGroup = this.groups[currentGroupName];
       const [r, g, b] = [newColorHex.substr(1, 2), newColorHex.substr(3, 2), newColorHex.substr(5, 2)].map(v => parseInt(v, 16));
@@ -981,7 +1014,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       
       if (newName !== currentGroupName) {
         // Check if new name already exists
-        if (this.groups[newName]) return UI.ErrorMessage('Group name already exists');
+        if (this.groups[newName]) return UI.ErrorMessage(this.UserTranslation.errors.groupNameExists);
         
         // Delete old group
         const dataId = oldGroup.dataId;
@@ -1162,11 +1195,11 @@ if (typeof politicalMapReborn !== 'undefined') {
       const playerName = $('#politicalMapRebornPlayerName').val().trim();
       const selectedGroup = $('#politicalMapRebornGroupSelect').find('option:selected').val()?.trim();
       
-      if (!playerName) return UI.ErrorMessage('Player name is required');
-      if (!selectedGroup) return UI.ErrorMessage('Group is required');
-      if (!this.groups[selectedGroup]) return UI.ErrorMessage('Group does not exist');
+      if (!playerName) return UI.ErrorMessage(this.UserTranslation.errors.playerNameRequired);
+      if (!selectedGroup) return UI.ErrorMessage(this.UserTranslation.errors.groupRequired);
+      if (!this.groups[selectedGroup]) return UI.ErrorMessage(this.UserTranslation.errors.groupNotFound);
       if (Object.values(this.groups).some(g => Object.keys(g.players).some(p => p.toLowerCase() === playerName.toLowerCase()))) {
-        return UI.ErrorMessage('Player already in a group');
+        return UI.ErrorMessage(this.UserTranslation.errors.playerAlreadyInGroup);
       }
 
       let formatted = '';
@@ -1179,7 +1212,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         }
         return false;
       });
-      if (!exists) return UI.ErrorMessage('Player does not exist');
+      if (!exists) return UI.ErrorMessage(this.UserTranslation.errors.playerNotFound);
 
       // Add player to color group on server
       await $.ajax({
@@ -1201,11 +1234,11 @@ if (typeof politicalMapReborn !== 'undefined') {
       const allyName = $('#politicalMapRebornAllyName').val().trim();
       const selectedGroup = $('#politicalMapRebornAllyGroupSelect').find('option:selected').val()?.trim();
       
-      if (!allyName) return UI.ErrorMessage('Ally name is required');
-      if (!selectedGroup) return UI.ErrorMessage('Group is required');
-      if (!this.groups[selectedGroup]) return UI.ErrorMessage('Group does not exist');
+      if (!allyName) return UI.ErrorMessage(this.UserTranslation.errors.allyNameRequired);
+      if (!selectedGroup) return UI.ErrorMessage(this.UserTranslation.errors.groupRequired);
+      if (!this.groups[selectedGroup]) return UI.ErrorMessage(this.UserTranslation.errors.groupNotFound);
       if (Object.values(this.groups).some(g => Object.keys(g.allies).some(a => a.toLowerCase() === allyName.toLowerCase()))) 
-        return UI.ErrorMessage('Ally already in a group');
+        return UI.ErrorMessage(this.UserTranslation.errors.allyAlreadyInGroup);
       
       let formatted = '';
       let allyId = null;
@@ -1217,7 +1250,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         }
         return false;
       });
-      if (!exists) return UI.ErrorMessage('Ally does not exist');
+      if (!exists) return UI.ErrorMessage(this.UserTranslation.errors.allyNotFound);
 
       // Add tribe to color group on server
       await $.ajax({
