@@ -1015,18 +1015,21 @@ if (typeof politicalMapReborn !== 'undefined') {
       // Refresh both group selects
       $('#politicalMapRebornGroupSelect, #politicalMapRebornAllyGroupSelect').empty();
       Object.keys(this.groups).forEach(name => {
+        if (name === "0") return; // Skip tribeless and not set tribe group since it doesn't have a real group in TW and can't be edited
         $('#politicalMapRebornGroupSelect, #politicalMapRebornAllyGroupSelect').append(`<option value="${name}">${name}</option>`);
       });
 
       // Refresh edit group select
       $('#politicalMapRebornEditGroupSelect').empty();
       Object.keys(this.groups).forEach(name => {
+        if (name === "0") return; // Skip tribeless and not set tribe group since it doesn't have a real group in TW and can't be edited
         $('#politicalMapRebornEditGroupSelect').append(`<option value="${name}">${name}</option>`);
       });
 
       // Refresh groups table (shows both players and allies)
       $('#player-color-select tbody').empty();
       Object.keys(this.groups).forEach(groupName => {
+        if (groupName === "0") return; // Skip tribeless and not set tribe group since it doesn't have a real group in TW and can't be edited
         const group = this.groups[groupName];
         const totalMembers = Object.keys(group.players).length + Object.keys(group.allies).length;
         $('#player-color-select tbody').append(`<tr>
