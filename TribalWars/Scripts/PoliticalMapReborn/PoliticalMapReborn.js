@@ -74,54 +74,136 @@ MapSdk = {
   getPlayerId(villages, x, y) {
     return villages[x.toString().padStart(3, '0') + y.toString().padStart(3, '0')]?.playerId;
   },
+  getCoordKey(x, y) {
+    return x.toString().padStart(3, '0') + y.toString().padStart(3, '0');
+  },
+  getCellIndex(x, y, smallestX, smallestY, width) {
+    return (y - smallestY) * width + (x - smallestX);
+  },
   generateGrid(villages, mapBounds, politicalMapRebornGroups) {
     var result = {};
-    // Build spatial index of all villages by ally_id (for fast lookup)
-    var allyVillages = {}; // { ally_id: [{ x, y, id }] }
-    var villages_to_groups_coords = {};
-    for (const [key, village] of Object.entries(villages)) {
-      if (village) {
-        if (politicalMapRebornGroups.allies[village.allyId]) {
-          var groupId = politicalMapRebornGroups.allies[village.allyId];
-          if (!allyVillages[groupId]) allyVillages[groupId] = [];
-          allyVillages[groupId].push({ 
-            x: Number(village.x), 
-            y: Number(village.y), 
-            id: key 
-          });
-          // Create key from coordinates to match second loop format
-          const coordKey = `${village.x.toString().padStart(3, '0')}${village.y.toString().padStart(3, '0')}`;
-          villages_to_groups_coords[coordKey] = groupId;
+    var villagesToGroupsCoords = {};
+    var width = mapBounds.biggestX - mapBounds.smallestX + 1;
+    var height = mapBounds.biggestY - mapBounds.smallestY + 1;
+    var cellCount = width * height;
+    var groupIds = [];
+    var groupIndexById = {};
+    var playerIds = [];
+    var playerIndexById = {};
+    var playerVillagesByGroup = {};
+    var allGroupVillages = [];
+
+    // Multi-source BFS flood fill: all source villages are seeded into the queue at once,
+    // sorted so that higher village IDs are processed first (tie-break). 
+    // BFS expands outward one step at a time in 4 directions,
+    // so each cell is reached by the nearest source first.
+    // Voronoi partition, but O(cells + villages).
+    const spreadOwnership = (assignments, sources, canClaimCell, queueSize) => {
+      var queue = new Int32Array(queueSize);
+      var head = 0, tail = 0;
+
+      // Seed: claim each source cell and enqueue it
+      for (const source of sources) {
+        if (assignments[source.cellIndex] === -1) {
+          assignments[source.cellIndex] = source.ownerIndex;
+          queue[tail++] = source.cellIndex;
         }
       }
-    }
-    // For each grid cell in range
-    for (let y = mapBounds.smallestY; y <= mapBounds.biggestY; y++) {
-      for (let x = mapBounds.smallestX; x <= mapBounds.biggestX; x++) {
-        const key = `${x.toString().padStart(3, '0')}${y.toString().padStart(3, '0')}`;
-        let currentGroupId;
-        let currentPlayerId;
-        let minDist = Infinity;
-        let best = null;
-        // Find closest group village (fast — one scan per group)
-        for (const [groupId, vlist] of Object.entries(allyVillages)) {
-          for (const v of vlist) {
-            const dist = Math.abs(x - v.x) + Math.abs(y - v.y);
-            if (
-              dist < minDist ||
-              (dist === minDist && parseInt(v.id) > parseInt(best?.id || 0))
-            ) {
-              minDist = dist;
-              best = v;
-              currentGroupId = groupId;
-              currentPlayerId = villages[v.id].playerId;
-            }
+
+      // Expand: propagate ownership to unclaimed neighbours
+      while (head < tail) {
+        const ci = queue[head++];
+        const ownerIndex = assignments[ci];
+        const cx = mapBounds.smallestX + (ci % width);
+        const cy = mapBounds.smallestY + Math.floor(ci / width);
+
+        for (const ni of [
+          cy > mapBounds.smallestY ? ci - width : -1, // north
+          cx < mapBounds.biggestX  ? ci + 1     : -1, // east
+          cy < mapBounds.biggestY  ? ci + width  : -1, // south
+          cx > mapBounds.smallestX ? ci - 1     : -1  // west
+        ]) {
+          if (ni !== -1 && assignments[ni] === -1 && canClaimCell(ni)) {
+            assignments[ni] = ownerIndex;
+            queue[tail++] = ni;
           }
         }
-        // Determine cluster border logic
-        result[key] = { groupId: currentGroupId, playerId: currentPlayerId, isGroupVillage: villages_to_groups_coords[key] || false };
+      }
+    };
+
+    // Build source lists: one flat list for the group pass, one per group for the player pass
+    for (const [key, village] of Object.entries(villages)) {
+      if (village) {
+        const groupId = politicalMapRebornGroups.allies[village.allyId];
+
+        if (groupId !== undefined) {
+          if (groupIndexById[groupId] === undefined) {
+            groupIndexById[groupId] = groupIds.length;
+            groupIds.push(groupId);
+            playerVillagesByGroup[groupId] = [];
+          }
+
+          if (playerIndexById[village.playerId] === undefined) {
+            playerIndexById[village.playerId] = playerIds.length;
+            playerIds.push(village.playerId);
+          }
+
+          const groupIndex = groupIndexById[groupId];
+          const playerIndex = playerIndexById[village.playerId];
+          const x = Number(village.x), y = Number(village.y);
+          const cellIndex = this.getCellIndex(x, y, mapBounds.smallestX, mapBounds.smallestY, width);
+
+          playerVillagesByGroup[groupId].push({ key, cellIndex, ownerIndex: playerIndex });
+          allGroupVillages.push({ key, cellIndex, ownerIndex: groupIndex });
+          villagesToGroupsCoords[this.getCoordKey(x, y)] = groupId;
+        }
       }
     }
+
+    if (!allGroupVillages.length) {
+      return result;
+    }
+
+    const byKeyDesc = (a, b) => parseInt(b.key, 10) - parseInt(a.key, 10);
+    allGroupVillages.sort(byKeyDesc);
+    Object.values(playerVillagesByGroup).forEach(list => list.sort(byKeyDesc));
+
+    var groupAssignments = new Int32Array(cellCount).fill(-1);
+    spreadOwnership(groupAssignments, allGroupVillages, () => true, cellCount);
+
+    var playerAssignments = new Int32Array(cellCount).fill(-1);
+    var groupCellCounts = new Int32Array(groupIds.length);
+
+    for (let cellIndex = 0; cellIndex < cellCount; cellIndex++) {
+      const groupIndex = groupAssignments[cellIndex];
+      if (groupIndex !== -1) {
+        groupCellCounts[groupIndex]++;
+      }
+    }
+
+    for (let groupIndex = 0; groupIndex < groupIds.length; groupIndex++) {
+      const groupId = groupIds[groupIndex];
+      const groupPlayers = playerVillagesByGroup[groupId];
+
+      if (!groupPlayers.length || !groupCellCounts[groupIndex]) {
+        continue;
+      }
+
+      spreadOwnership(playerAssignments, groupPlayers, (ci) => groupAssignments[ci] === groupIndex, groupCellCounts[groupIndex]);
+    }
+
+    for (let y = mapBounds.smallestY; y <= mapBounds.biggestY; y++) {
+      for (let x = mapBounds.smallestX; x <= mapBounds.biggestX; x++) {
+        const key = this.getCoordKey(x, y);
+        const ci = this.getCellIndex(x, y, mapBounds.smallestX, mapBounds.smallestY, width);
+        result[key] = {
+          groupId:  groupAssignments[ci]  === -1 ? undefined : groupIds[groupAssignments[ci]],
+          playerId: playerAssignments[ci] === -1 ? undefined : playerIds[playerAssignments[ci]],
+          isGroupVillage: villagesToGroupsCoords[key] || false
+        };
+      }
+    }
+
     return result;
   },
   pixelByCoord(x_s, y_s, x_c, y_c) {
