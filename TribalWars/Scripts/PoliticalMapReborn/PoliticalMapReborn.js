@@ -134,7 +134,9 @@ MapSdk = {
     // Build source lists: one flat list for the group pass, one per group for the player pass
     for (const [key, village] of Object.entries(villages)) {
       if (village) {
-        const groupId = politicalMapRebornGroups.allies[village.allyId];
+        // To handle cases where players are allyless or their tribe was not added to a group,
+        // but the player themselves were added to a group, we check player group first before tribe group.
+        const groupId = politicalMapRebornGroups.players[village.playerId] ?? politicalMapRebornGroups.allies[village.allyId];
 
         if (groupId !== undefined) {
           if (groupIndexById[groupId] === undefined) {
