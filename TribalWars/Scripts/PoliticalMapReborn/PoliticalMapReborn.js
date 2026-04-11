@@ -1,6 +1,6 @@
 /*
  * Script Name: Political Map Reborn
- * Version: v0.1.2
+ * Version: v0.1.3
  * Last Updated:
  * Author: NunoF-
  * Author URL: https://nunoferr.github.io/
@@ -518,7 +518,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           premiumAccountTitle: 'Premium Account',
           premiumAccountHtml: 'A Premium Account is required to use Political Map Reborn\'s custom groups.',
           premiumAccountMissing: 'You have a Premium Account active and can therefore use Political Map Reborn\'s custom groups!',
-          credits: 'Political Map Reborn script v0.1.2 by NunoF-',
+          credits: 'Political Map Reborn script v0.1.3 by NunoF-',
         },
       };
     }
