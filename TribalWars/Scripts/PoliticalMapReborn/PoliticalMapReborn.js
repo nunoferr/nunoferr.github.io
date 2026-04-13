@@ -83,15 +83,79 @@ MapSdk = {
   generateGrid(villages, mapBounds, politicalMapRebornGroups) {
     var result = {};
     var villagesToGroupsCoords = {};
-    var width = mapBounds.biggestX - mapBounds.smallestX + 1;
-    var height = mapBounds.biggestY - mapBounds.smallestY + 1;
-    var cellCount = width * height;
     var groupIds = [];
     var groupIndexById = {};
     var playerIds = [];
     var playerIndexById = {};
     var playerVillagesByGroup = {};
     var allGroupVillages = [];
+
+    // Pass 1: collect group village coordinates and compute tight grid bounds.
+    // mapBounds covers all non-barbarian villages, which can extend far beyond
+    // group territory. Using tight bounds prevents isolated painted cells at
+    // map extremes where no group village exists.
+    let gridMinX = Infinity, gridMaxX = -Infinity;
+    let gridMinY = Infinity, gridMaxY = -Infinity;
+    const groupVillageEntries = [];
+
+    for (const [key, village] of Object.entries(villages)) {
+      if (village) {
+        // To handle cases where players are allyless or their tribe was not added to a group,
+        // but the player themselves were added to a group, we check player group first before tribe group.
+        const groupId = politicalMapRebornGroups.players[village.playerId] ?? politicalMapRebornGroups.allies[village.allyId];
+
+        if (groupId !== undefined) {
+          const x = Number(village.x), y = Number(village.y);
+          if (x < gridMinX) gridMinX = x;
+          if (x > gridMaxX) gridMaxX = x;
+          if (y < gridMinY) gridMinY = y;
+          if (y > gridMaxY) gridMaxY = y;
+          groupVillageEntries.push({ key, x, y, groupId, playerId: village.playerId });
+        }
+      }
+    }
+
+    if (!groupVillageEntries.length) {
+      return result;
+    }
+
+    // Expand bounds by 8 fields in each direction for padding around group territory
+    gridMinX -= 8; gridMaxX += 8;
+    gridMinY -= 8; gridMaxY += 8;
+
+    // Grid dimensions based on group villages only
+    var width = gridMaxX - gridMinX + 1;
+    var height = gridMaxY - gridMinY + 1;
+    var cellCount = width * height;
+
+    // Circle boundary: center of the bounding box, radius = half the larger dimension.
+    // Clips the corners of the bounding rectangle so the painted territory appears circular.
+    const centerX = (gridMinX + gridMaxX) / 2;
+    const centerY = (gridMinY + gridMaxY) / 2;
+    const radius = Math.max(width, height) / 2;
+    const radiusSq = radius * radius;
+
+    // Pass 2: build source lists using tight grid bounds
+    for (const { key, x, y, groupId, playerId } of groupVillageEntries) {
+      if (groupIndexById[groupId] === undefined) {
+        groupIndexById[groupId] = groupIds.length;
+        groupIds.push(groupId);
+        playerVillagesByGroup[groupId] = [];
+      }
+
+      if (playerIndexById[playerId] === undefined) {
+        playerIndexById[playerId] = playerIds.length;
+        playerIds.push(playerId);
+      }
+
+      const groupIndex = groupIndexById[groupId];
+      const playerIndex = playerIndexById[playerId];
+      const cellIndex = this.getCellIndex(x, y, gridMinX, gridMinY, width);
+
+      playerVillagesByGroup[groupId].push({ key, cellIndex, ownerIndex: playerIndex });
+      allGroupVillages.push({ key, cellIndex, ownerIndex: groupIndex });
+      villagesToGroupsCoords[this.getCoordKey(x, y)] = groupId;
+    }
 
     // Multi-source BFS flood fill: all source villages are seeded into the queue at once,
     // sorted so that higher village IDs are processed first (tie-break). 
@@ -114,14 +178,14 @@ MapSdk = {
       while (head < tail) {
         const ci = queue[head++];
         const ownerIndex = assignments[ci];
-        const cx = mapBounds.smallestX + (ci % width);
-        const cy = mapBounds.smallestY + Math.floor(ci / width);
+        const cx = gridMinX + (ci % width);
+        const cy = gridMinY + Math.floor(ci / width);
 
         for (const ni of [
-          cy > mapBounds.smallestY ? ci - width : -1, // north
-          cx < mapBounds.biggestX  ? ci + 1     : -1, // east
-          cy < mapBounds.biggestY  ? ci + width  : -1, // south
-          cx > mapBounds.smallestX ? ci - 1     : -1  // west
+          cy > gridMinY ? ci - width : -1, // north
+          cx < gridMaxX ? ci + 1     : -1, // east
+          cy < gridMaxY ? ci + width  : -1, // south
+          cx > gridMinX ? ci - 1     : -1  // west
         ]) {
           if (ni !== -1 && assignments[ni] === -1 && canClaimCell(ni)) {
             assignments[ni] = ownerIndex;
@@ -131,47 +195,19 @@ MapSdk = {
       }
     };
 
-    // Build source lists: one flat list for the group pass, one per group for the player pass
-    for (const [key, village] of Object.entries(villages)) {
-      if (village) {
-        // To handle cases where players are allyless or their tribe was not added to a group,
-        // but the player themselves were added to a group, we check player group first before tribe group.
-        const groupId = politicalMapRebornGroups.players[village.playerId] ?? politicalMapRebornGroups.allies[village.allyId];
-
-        if (groupId !== undefined) {
-          if (groupIndexById[groupId] === undefined) {
-            groupIndexById[groupId] = groupIds.length;
-            groupIds.push(groupId);
-            playerVillagesByGroup[groupId] = [];
-          }
-
-          if (playerIndexById[village.playerId] === undefined) {
-            playerIndexById[village.playerId] = playerIds.length;
-            playerIds.push(village.playerId);
-          }
-
-          const groupIndex = groupIndexById[groupId];
-          const playerIndex = playerIndexById[village.playerId];
-          const x = Number(village.x), y = Number(village.y);
-          const cellIndex = this.getCellIndex(x, y, mapBounds.smallestX, mapBounds.smallestY, width);
-
-          playerVillagesByGroup[groupId].push({ key, cellIndex, ownerIndex: playerIndex });
-          allGroupVillages.push({ key, cellIndex, ownerIndex: groupIndex });
-          villagesToGroupsCoords[this.getCoordKey(x, y)] = groupId;
-        }
-      }
-    }
-
-    if (!allGroupVillages.length) {
-      return result;
-    }
-
     const byKeyDesc = (a, b) => parseInt(b.key, 10) - parseInt(a.key, 10);
     allGroupVillages.sort(byKeyDesc);
     Object.values(playerVillagesByGroup).forEach(list => list.sort(byKeyDesc));
 
+    const canClaimCircle = (ni) => {
+      const nx = gridMinX + (ni % width);
+      const ny = gridMinY + Math.floor(ni / width);
+      const dx = nx - centerX, dy = ny - centerY;
+      return dx * dx + dy * dy <= radiusSq;
+    };
+
     var groupAssignments = new Int32Array(cellCount).fill(-1);
-    spreadOwnership(groupAssignments, allGroupVillages, () => true, cellCount);
+    spreadOwnership(groupAssignments, allGroupVillages, canClaimCircle, cellCount);
 
     var playerAssignments = new Int32Array(cellCount).fill(-1);
     var groupCellCounts = new Int32Array(groupIds.length);
@@ -194,10 +230,12 @@ MapSdk = {
       spreadOwnership(playerAssignments, groupPlayers, (ci) => groupAssignments[ci] === groupIndex, groupCellCounts[groupIndex]);
     }
 
-    for (let y = mapBounds.smallestY; y <= mapBounds.biggestY; y++) {
-      for (let x = mapBounds.smallestX; x <= mapBounds.biggestX; x++) {
+    for (let y = gridMinY; y <= gridMaxY; y++) {
+      for (let x = gridMinX; x <= gridMaxX; x++) {
+        const dx = x - centerX, dy = y - centerY;
+        if (dx * dx + dy * dy > radiusSq) continue;
         const key = this.getCoordKey(x, y);
-        const ci = this.getCellIndex(x, y, mapBounds.smallestX, mapBounds.smallestY, width);
+        const ci = this.getCellIndex(x, y, gridMinX, gridMinY, width);
         result[key] = {
           groupId:  groupAssignments[ci]  === -1 ? undefined : groupIds[groupAssignments[ci]],
           playerId: playerAssignments[ci] === -1 ? undefined : playerIds[playerAssignments[ci]],
