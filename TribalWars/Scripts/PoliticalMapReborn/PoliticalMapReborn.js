@@ -532,9 +532,20 @@ if (typeof politicalMapReborn !== 'undefined') {
         en_US: {
           title: 'Incoming Tribe Attacks',
           total: 'Total',
-          loadingData: 'Loading data...',
-          creatingAndPaintingClusters: 'Creating and painting clusters...',
-          politicalMapRebornLoaded: 'Political Map Reborn Loaded.',
+          informationMessages: {
+            loadingData: 'Loading data...',
+            creatingAndPaintingClusters: 'Creating and painting clusters...',
+            politicalMapRebornLoaded: 'Political Map Reborn Loaded.',
+            fetchingGroups: 'Fetching political map reborn groups',
+            fetchingLatestConquers: 'Fetching latest conquers...',
+            groupCreatedSuccessfully: 'Group created successfully',
+            groupUpdated: 'Group updated',
+            groupRemoved: 'Group removed',
+            playerAddedToGroup: 'Player added to group',
+            playerRemovedFromGroup: 'Player removed from group',
+            allyAddedToGroup: 'Ally added to group',
+            allyRemovedFromGroup: 'Ally removed from group',
+          },
           settings: {
             title: 'Political Map Reborn Settings'
           },
@@ -552,10 +563,47 @@ if (typeof politicalMapReborn !== 'undefined') {
             allyAlreadyInGroup: 'Ally already in a group',
             allyNotFound: 'Ally does not exist'
           },
+          groups: {
+            editTitle: 'Edit Group',
+            saveButton: 'Save Changes',
+            deleteButton: 'Delete Group',
+            confirmRemoveGroup: 'Are you sure you want to remove this group?',
+            confirmRemovePlayer: 'Are you sure you want to remove this player from the group?',
+            confirmRemoveAlly: 'Are you sure you want to remove this ally from the group?',
+            addPlayerUI: {
+              title: 'Add Player to a Group',
+              player: 'Player',
+              group: 'Group',
+              button: 'Add Player'
+            },
+            addAllyUI: {
+              title: 'Add Ally to a Group',
+              ally: 'Ally',
+              group: 'Group',
+              button: 'Add Ally'
+            },
+            createGroupUI: {
+              title: 'Create a Group',
+              groupName: 'Group Name',
+              color: 'Color',
+              button: 'Create Group'
+            },
+          },
+          tableHeaders: {
+            group: 'Group',
+            member: 'Member',
+            remove: 'Remove'
+          },
+          legacyMap: {
+            enableLegacyMap: 'Enable legacy Political Map',
+            premiumAccountTitle: 'Premium Account',
+            premiumAccountHtml: 'A Premium Account is required to use Political Map Reborn\'s custom groups.',
+            premiumAccountMissing: 'You have a Premium Account active and can therefore use Political Map Reborn\'s custom groups!',
+          },
+          settingsTitle: 'Political Map Reborn Settings',
+          settingsLink: 'Political Map Reborn Settings',
+          reloadButton: 'Reload Political Map Reborn',
           runPoliticalMapReborn: 'Run Political Map Reborn',
-          premiumAccountTitle: 'Premium Account',
-          premiumAccountHtml: 'A Premium Account is required to use Political Map Reborn\'s custom groups.',
-          premiumAccountMissing: 'You have a Premium Account active and can therefore use Political Map Reborn\'s custom groups!',
           credits: 'Political Map Reborn script v0.1.3 by NunoF-',
         },
       };
@@ -611,7 +659,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #fetchPoliticalMapRebornGroups() {
-      UI.InfoMessage("Fetching political map reborn groups");
+      UI.InfoMessage(this.UserTranslation.informationMessages.fetchingGroups);
       const requestdata = await this.#fetchPage(this.#generateUrl('map'));
       const parsedHtml = $(requestdata);
       var groups = {};
@@ -822,7 +870,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         return;
       }
 
-      UI.InfoMessage(this.UserTranslation.creatingAndPaintingClusters);
+      UI.InfoMessage(this.UserTranslation.informationMessages.creatingAndPaintingClusters);
       // Double rAF: first fires before paint, second fires after paint completes
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       var politicalMapRebornGroups = { players: {}, allies: {}, groupsColors: {} };
@@ -838,7 +886,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       });
       MapSdk.init(this.villagesMap, this.mapBounds, politicalMapRebornGroups);
       MapSdk.mapOverlay.reload();
-      UI.SuccessMessage(this.UserTranslation.politicalMapRebornLoaded);
+      UI.SuccessMessage(this.UserTranslation.informationMessages.politicalMapRebornLoaded);
     }
 
     async initUI() {
@@ -847,7 +895,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         return;
       }
       
-      UI.InfoMessage(this.UserTranslation.loadingData);
+      UI.InfoMessage(this.UserTranslation.informationMessages.loadingData);
       var lastAPIVillageQuery = localStorage.getItem(this.lastQueryToTwApiText);
       if (
         lastAPIVillageQuery === null ||
@@ -856,7 +904,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         await this.#updateTwApiData();
       } // No need for else, already set to fetch in constructor
 
-      UI.InfoMessage("Fetching latest conquers...");
+      UI.InfoMessage(this.UserTranslation.informationMessages.fetchingLatestConquers);
 
       // Update data with last conquers
       await this.#updateTwApiLatestConquers();
@@ -928,20 +976,38 @@ if (typeof politicalMapReborn !== 'undefined') {
           display: block;
           width: min-content;
         }
+        #politicalMapRebornSettings .gm-group-header-cell, .politicalMapRebornSettingsEditGroupModal .gm-group-header-cell {
+          text-align: center;
+          min-width: 55px;
+        }
+        #politicalMapRebornSettings .gm-edit-icon, .politicalMapRebornSettingsEditGroupModal .gm-edit-icon {
+          cursor: pointer;
+          margin-left: 5px;
+        }
+        #politicalMapRebornSettings .gm-remove-cell, .politicalMapRebornSettingsEditGroupModal .gm-remove-cell {
+          position: relative;
+        }
+        #politicalMapRebornSettings .gm-remove-btn, .politicalMapRebornSettingsEditGroupModal .gm-remove-btn {
+          background: url(/graphic/login_close.png) top left no-repeat;
+          width: 20px;
+          height: 20px;
+          margin: 0 auto;
+          cursor: pointer;
+        }
       </style>`).appendTo('head');
 
       // UI - Create Settings Container
       $(`<div id="politicalMapRebornSettings">
-  <h2>Political Map Reborn Settings</h2>
+  <h2>${this.UserTranslation.settingsTitle}</h2>
 
   <div class="gm-section">
     <img alt="" class="premium-icon premium_tooltip ${!game_data.features.Premium.active ? 'premium-icon-disabled' : ''}" src="https://yy1.tribalwars.vodka/graphic/premium/features/Premium_hint.png"
-    data-title='<h3>${this.UserTranslation.premiumAccountTitle}</h3> :: ${!game_data.features.Premium.active ? this.UserTranslation.premiumAccountHtml : this.UserTranslation.premiumAccountMissing}'>
+    data-title='<h3>${this.UserTranslation.legacyMap.premiumAccountTitle}</h3> :: ${!game_data.features.Premium.active ? this.UserTranslation.legacyMap.premiumAccountHtml : this.UserTranslation.legacyMap.premiumAccountMissing}'>
     <table class="vis gm-table">
       <tbody>
         <tr>
           <td><input type="checkbox" onclick="politicalMapReborn.toggleLegacyMap()" ${this.legacyPoliticalMapEnabled || !game_data.features.Premium.active ? 'checked' : ''}></td>
-          <th>Enable legacy Political Map</th>
+          <th>${this.UserTranslation.legacyMap.enableLegacyMap}</th>
         </tr>
       </tbody>
     </table>
@@ -952,27 +1018,27 @@ if (typeof politicalMapReborn !== 'undefined') {
      <table class="vis" id="player-color-select">
        <thead>
          <tr>
-           <th>Group</th>
-           <th>Member</th>
-           <th class="gm-th-narrow">Remove</th>
+           <th>${this.UserTranslation.tableHeaders.group}</th>
+           <th>${this.UserTranslation.tableHeaders.member}</th>
+           <th class="gm-th-narrow">${this.UserTranslation.tableHeaders.remove}</th>
           </tr>
         </thead>
       <tbody></tbody>
       </table>
-      <span class="gm-label">Create a Group</span>
+      <span class="gm-label">${this.UserTranslation.groups.createGroupUI.title}</span>
       <table class="vis gm-table-spaced">
         <tbody>
           <tr>
-            <th class="gm-th-wide">Group Name</th>
+            <th class="gm-th-wide">${this.UserTranslation.groups.createGroupUI.groupName}</th>
             <td><input type="text" id="politicalMapRebornGroupName"></td>
           </tr>
           <tr>
-            <th class="gm-th-wide">Color</th>
+            <th class="gm-th-wide">${this.UserTranslation.groups.createGroupUI.color}</th>
             <td><input type="color" id="politicalMapRebornGroupColor"></td>
           </tr>
           <tr>
             <td colspan="2" class="gm-btn-row">
-              <a class="btn gm-btn-right" href="#" onclick="politicalMapReborn.addGroup(event)">Create Group</a>
+              <a class="btn gm-btn-right" href="#" onclick="politicalMapReborn.addGroup(event)">${this.UserTranslation.groups.createGroupUI.button}</a>
             </td>
           </tr>
         </tbody>
@@ -982,38 +1048,38 @@ if (typeof politicalMapReborn !== 'undefined') {
     <div class="gm-column">
 
     <div class="gm-column">
-      <span class="gm-label">Add Ally to a Group</span>
+      <span class="gm-label">${this.UserTranslation.groups.addAllyUI.title}</span>
       <table class="vis gm-table-spaced">
         <tbody>
           <tr>
-            <th class="gm-th-wide">Ally</th>
+            <th class="gm-th-wide">${this.UserTranslation.groups.addAllyUI.ally}</th>
             <td><input type="text" id="politicalMapRebornAllyName" data-type="ally" autocomplete="off" class="autocomplete ui-autocomplete-input"></td>
           </tr>
           <tr>
-            <th class="gm-th-wide">Group</th>
+            <th class="gm-th-wide">${this.UserTranslation.groups.addAllyUI.group}</th>
             <td><select id="politicalMapRebornAllyGroupSelect"></select></td>
           </tr>
           <tr>
             <td colspan="2" class="gm-btn-row">
-              <a class="btn gm-btn-right" href="#" onclick="politicalMapReborn.addAllyToGroup(event)">Add Ally</a>
+              <a class="btn gm-btn-right" href="#" onclick="politicalMapReborn.addAllyToGroup(event)">${this.UserTranslation.groups.addAllyUI.button}</a>
             </td>
           </tr>
         </tbody>
       </table>
-      <span class="gm-label">Add Player to a Group</span>
+      <span class="gm-label">${this.UserTranslation.groups.addPlayerUI.title}</span>
       <table class="vis gm-table-spaced">
         <tbody>
           <tr>
-            <th class="gm-th-wide">Player</th>
+            <th class="gm-th-wide">${this.UserTranslation.groups.addPlayerUI.player}</th>
             <td><input type="text" id="politicalMapRebornPlayerName" data-type="player" autocomplete="off" class="autocomplete ui-autocomplete-input"></td>
           </tr>
           <tr>
-            <th class="gm-th-wide">Group</th>
+            <th class="gm-th-wide">${this.UserTranslation.groups.addPlayerUI.group}</th>
             <td><select id="politicalMapRebornGroupSelect"></select></td>
           </tr>
           <tr>
             <td colspan="2" class="gm-btn-row">
-              <a class="btn gm-btn-right" href="#" onclick="politicalMapReborn.addPlayerToGroup(event)">Add Player</a>
+              <a class="btn gm-btn-right" href="#" onclick="politicalMapReborn.addPlayerToGroup(event)">${this.UserTranslation.groups.addPlayerUI.button}</a>
             </td>
           </tr>
         </tbody>
@@ -1021,10 +1087,10 @@ if (typeof politicalMapReborn !== 'undefined') {
     </div>
   </div>
 </div>
-<div class="btn gm-reload-btn" onclick="politicalMapReborn.runPoliticalMapReborn()">Reload Political Map Reborn</div>`).insertAfter($("#continent_id").parent());
+<div class="btn gm-reload-btn" onclick="politicalMapReborn.runPoliticalMapReborn()">${this.UserTranslation.reloadButton}</div>`).insertAfter($("#continent_id").parent());
 
       // UI - Add Settings Button
-      $(`<a class="gm-settings-link" href="#" onclick="politicalMapReborn.openSettings(event)">Political Map Reborn Settings</a>`).insertAfter($("#continent_id").parent());
+      $(`<a class="gm-settings-link" href="#" onclick="politicalMapReborn.openSettings(event)">${this.UserTranslation.settingsLink}</a>`).insertAfter($("#continent_id").parent());
 
       // REMOVE BEFORE RELEASE
       $("#politicalMapRebornSettings").toggle();
@@ -1073,25 +1139,19 @@ if (typeof politicalMapReborn !== 'undefined') {
         const group = this.groups[groupName];
         const totalMembers = Object.keys(group.players).length + Object.keys(group.allies).length;
         $('#player-color-select tbody').append(`<tr>
-          <td rowspan="${totalMembers + 1}" style="text-align: center;min-width: 55px;">
+          <td rowspan="${totalMembers + 1}" class="gm-group-header-cell">
             <span style="color: ${group.color}">${groupName}</span>
-            <img src="https://dszz.innogamescdn.com/asset/11df8195/graphic/edit.png" style="cursor: pointer;margin-left: 5px;" onclick="politicalMapReborn.openEditGroupModal(event, '${groupName}')">
+            <img src="https://dszz.innogamescdn.com/asset/11df8195/graphic/edit.png" class="gm-edit-icon" onclick="politicalMapReborn.openEditGroupModal(event, '${groupName}')">
           </td>
         </tr>`);
         Object.entries(group.players).forEach(([playerName, playerId]) => {
-          $('#player-color-select tbody').append(`<tr><td style="width: 210px">${playerName} <i>(player)</i></td><td style="position: relative">
-            <div style="
-              background: url(/graphic/login_close.png) top left no-repeat;
-              width: 20px; height: 20px; margin: 0 auto; cursor: pointer;
-            " onclick="politicalMapReborn.removePlayerFromGroup(event, '${groupName}', '${playerName}')"></div>
+          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${playerName} <i>(player)</i></td><td class="gm-remove-cell">
+            <div class="gm-remove-btn" onclick="politicalMapReborn.removePlayerFromGroup(event, '${groupName}', '${playerName}')"></div>
           </td></tr>`);
         });
         Object.keys(group.allies).forEach(allyTag => {
-          $('#player-color-select tbody').append(`<tr><td style="width: 210px">${allyTag} <i>(ally)</i></td><td style="position: relative">
-            <div style="
-              background: url(/graphic/login_close.png) top left no-repeat;
-              width: 20px; height: 20px; margin: 0 auto; cursor: pointer;
-            " onclick="politicalMapReborn.removeAllyFromGroup(event, '${groupName}', '${allyTag}')"></div>
+          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${allyTag} <i>(ally)</i></td><td class="gm-remove-cell">
+            <div class="gm-remove-btn" onclick="politicalMapReborn.removeAllyFromGroup(event, '${groupName}', '${allyTag}')"></div>
           </td></tr>`);
         });
       });
@@ -1099,7 +1159,7 @@ if (typeof politicalMapReborn !== 'undefined') {
 
     async toggleLegacyMap() {
       if (!game_data.features.Premium.active) {
-        UI.ErrorMessage(this.UserTranslation.premiumAccountHtml);
+        UI.ErrorMessage(this.UserTranslation.legacyMap.premiumAccountHtml);
         return;
       }
       this.legacyPoliticalMapEnabled = !this.legacyPoliticalMapEnabled;
@@ -1174,7 +1234,7 @@ if (typeof politicalMapReborn !== 'undefined') {
             });
             
             this.#refreshGroupsUI();
-            UI.SuccessMessage('Group created successfully');
+            UI.SuccessMessage(this.UserTranslation.informationMessages.groupCreatedSuccessfully);
           } catch (error) {
             console.error('Failed to fetch map page for data-id:', error);
             UI.ErrorMessage(this.UserTranslation.errors.failedToCreateGroup);
@@ -1285,12 +1345,12 @@ if (typeof politicalMapReborn !== 'undefined') {
       }
       
       this.#refreshGroupsUI();
-      UI.SuccessMessage('Group updated');
+      UI.SuccessMessage(this.UserTranslation.informationMessages.groupUpdated);
     }
 
     removeGroup(e, groupName) {
       e.preventDefault();
-      UI.addConfirmBox('Are you sure you want to remove this group?', async () => {
+      UI.addConfirmBox(this.UserTranslation.groups.confirmRemoveGroup, async () => {
         const dataId = this.groups[groupName]?.dataId;
         if (dataId) {
           await $.ajax({
@@ -1302,7 +1362,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         }
         delete this.groups[groupName];
         this.#refreshGroupsUI();
-        UI.SuccessMessage('Group removed');
+        UI.SuccessMessage(this.UserTranslation.informationMessages.groupRemoved);
         Dialog.close(); // Close group edit modal
       });
     }
@@ -1312,23 +1372,23 @@ if (typeof politicalMapReborn !== 'undefined') {
       $('#politicalMapRebornEditGroupSelect').val(groupName);
       var html = `
       <div class="politicalMapRebornSettingsEditGroupModal">
-        <span class="gm-label">Edit Group</span>
+        <span class="gm-label">${this.UserTranslation.groups.editTitle}</span>
         <table class="vis gm-table-spaced">
         <tbody>
           <tr>
-            <th class="gm-th-wide">Group Name</th>
+            <th class="gm-th-wide">${this.UserTranslation.groups.createGroupUI.groupName}</th>
             <td><input type="text" id="politicalMapRebornEditGroupName" value="${groupName}"></td>
           </tr>
           <tr>
-            <th class="gm-th-wide">Color</th>
+            <th class="gm-th-wide">${this.UserTranslation.groups.createGroupUI.color}</th>
             <td><input type="color" id="politicalMapRebornEditGroupColor" value="${this.groups[groupName].color}"></td>
           </tr>
           <tr>
             <td class="gm-btn-row">
-              <a class="btn" href="#" onclick="politicalMapReborn.removeGroup(event, '${groupName}')">Delete Group</a>
+              <a class="btn" href="#" onclick="politicalMapReborn.removeGroup(event, '${groupName}')">${this.UserTranslation.groups.deleteButton}</a>
             </td>
             <td colspan="2" class="gm-btn-row">
-              <a class="btn gm-btn-right" href="#" onclick="politicalMapReborn.editGroup(event, '${groupName}')">Edit Group</a>
+              <a class="btn gm-btn-right" href="#" onclick="politicalMapReborn.editGroup(event, '${groupName}')">${this.UserTranslation.groups.saveButton}</a>
             </td>
           </tr>
         </tbody>
@@ -1338,7 +1398,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     removePlayerFromGroup(e, groupName, playerName) {
-      UI.addConfirmBox('Are you sure you want to remove this player from the group?', async () => {
+      UI.addConfirmBox(this.UserTranslation.groups.confirmRemovePlayer, async () => {
         e.preventDefault();
         
         // Get playerId from map
@@ -1354,12 +1414,12 @@ if (typeof politicalMapReborn !== 'undefined') {
         
         delete this.groups[groupName].players[playerName];
         this.#refreshGroupsUI();
-        UI.SuccessMessage('Player removed from group');
+        UI.SuccessMessage(this.UserTranslation.informationMessages.playerRemovedFromGroup);
       });
     }
 
     removeAllyFromGroup(e, groupName, allyName) {
-      UI.addConfirmBox('Are you sure you want to remove this ally from the group?', async () => {
+      UI.addConfirmBox(this.UserTranslation.groups.confirmRemoveAlly, async () => {
         e.preventDefault();
         
         // Remove ally from color group on server
@@ -1372,7 +1432,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         
         delete this.groups[groupName].allies[allyName];
         this.#refreshGroupsUI();
-        UI.SuccessMessage('Ally removed from group');
+        UI.SuccessMessage(this.UserTranslation.informationMessages.allyRemovedFromGroup);
       });
     }
 
@@ -1412,7 +1472,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       this.#refreshGroupsUI();
       $('#politicalMapRebornPlayerName').val('');
       $('#politicalMapRebornGroupSelect').val($('#politicalMapRebornGroupSelect option').first().val() ?? '');
-      UI.SuccessMessage('Player added to group');
+      UI.SuccessMessage(this.UserTranslation.informationMessages.playerAddedToGroup);
     }
 
     async addAllyToGroup(e) {
@@ -1450,7 +1510,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       this.#refreshGroupsUI();
       $('#politicalMapRebornAllyName').val('');
       $('#politicalMapRebornAllyGroupSelect').val($('#politicalMapRebornAllyGroupSelect option').first().val() ?? '');
-      UI.SuccessMessage('Ally added to group');
+      UI.SuccessMessage(this.UserTranslation.informationMessages.allyAddedToGroup);
     }
   }
 
