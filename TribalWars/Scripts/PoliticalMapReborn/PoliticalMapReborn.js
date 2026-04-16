@@ -110,7 +110,7 @@ MapSdk = {
           if (x > gridMaxX) gridMaxX = x;
           if (y < gridMinY) gridMinY = y;
           if (y > gridMaxY) gridMaxY = y;
-          groupVillageEntries.push({ key, x, y, groupId, playerId: village.playerId });
+          groupVillageEntries.push({ key, x, y, groupId, playerId: village.playerId, tempOwnershipLog: { displayTempLog: false }});
         }
       }
     }
@@ -835,7 +835,7 @@ if (typeof politicalMapReborn !== 'undefined') {
             if (y < mapBounds.smallestY) mapBounds.smallestY = y;
             else if (y > mapBounds.biggestY) mapBounds.biggestY = y;
 
-            villagesMap[id] = { x, y, allyId: this.playersMap[playerId]?.allyId ?? 0, playerId: playerId };
+            villagesMap[id] = { x, y, allyId: this.playersMap[playerId]?.allyId ?? 0, playerId: playerId, tempOwnershipLog: { displayTempLog: false }};
           }
         });
       localStorage.setItem(this.mapBoundsText, JSON.stringify(mapBounds));
@@ -853,14 +853,18 @@ if (typeof politicalMapReborn !== 'undefined') {
 
     async #updateTwApiLatestConquers() {
       var fetchedWorldVillages = await this.#fetchPage(
-        '/interface.php?func=get_conquer&since=' + Math.floor(Date.now() / 1000 - 2 * 60 * 60)
+        '/interface.php?func=get_conquer&since=' + Math.floor(Date.now() / 1000  + 60 - 24 * 60 * 60) // Added 60 seconds to avoid potential issues with the data no longer being avaliable due to more than 24 hours having passed.
       );
       fetchedWorldVillages
         .trim()
         .split('\n')
         .forEach((line) => {
-          const [id, , newOwner] = line.split(',');
-          if (this.villagesMap.hasOwnProperty(id)) [id].playerId = newOwner;
+          const [villageId, unixTimestamp, newOwner, oldOwner] = line.split(',');
+          if (this.villagesMap.hasOwnProperty(villageId)) {
+            this.villagesMap[villageId].playerId = newOwner
+            this.villagesMap[villageId].tempOwnershipLog = { unixTimestamp, newOwner, oldOwner, displayTempLog: false };
+            debugger;
+          };
         });
     }
 
