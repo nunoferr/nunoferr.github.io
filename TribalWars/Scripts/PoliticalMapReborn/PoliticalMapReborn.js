@@ -203,6 +203,10 @@ MapSdk = {
   getPlayerId(villages, x, y) {
     return villages[x.toString().padStart(3, '0') + y.toString().padStart(3, '0')]?.playerId;
   },
+  // Helper to get ally_id at coordinate
+  getAllyId(villages, x, y) {
+    return villages[x.toString().padStart(3, '0') + y.toString().padStart(3, '0')]?.allyId;
+  },
   getCoordKey(x, y) {
     return x.toString().padStart(3, '0') + y.toString().padStart(3, '0');
   },
@@ -220,6 +224,7 @@ MapSdk = {
     var allGroupVillages = [];
     var villagesTempOwnershipLog = {};
     var villagesLastOwnershipTriggerGroup = {};
+    var playerIdToAllyId = {};
 
     // Pass 1: collect group village coordinates and compute tight grid bounds.
     // mapBounds covers all non-barbarian villages, which can extend far beyond
@@ -247,6 +252,7 @@ MapSdk = {
             villageData.lastOwnershipTriggerGroup = village.lastOwnershipTriggerGroup ?? '';
           }
           groupVillageEntries.push(villageData);
+          playerIdToAllyId[village.playerId] = village.allyId;
         }
       }
     }
@@ -374,9 +380,11 @@ MapSdk = {
         if (dx * dx + dy * dy > radiusSq) continue;
         const key = this.getCoordKey(x, y);
         const ci = this.getCellIndex(x, y, gridMinX, gridMinY, width);
+        const assignedPlayerId = playerAssignments[ci] === -1 ? undefined : playerIds[playerAssignments[ci]];
         result[key] = {
           groupId:  groupAssignments[ci]  === -1 ? undefined : groupIds[groupAssignments[ci]],
-          playerId: playerAssignments[ci] === -1 ? undefined : playerIds[playerAssignments[ci]],
+          playerId: assignedPlayerId,
+          allyId:   assignedPlayerId !== undefined ? playerIdToAllyId[assignedPlayerId] : undefined,
           isGroupVillage: villagesToGroupsCoords[key] || false
         };
         if (villagesTempOwnershipLog[key] !== undefined) {
@@ -544,51 +552,63 @@ MapSdk = {
           ctx.fillRect(baseX, baseY, W, H);
         }
 
-        // Check all 8 neighbors (cardinal + diagonal) FIRST to know which borders exist
+        // Group border mask: neighbor has different groupId
         const hasBorders = {
-          north: village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c - 1),
-          east: village.groupId !== this.getGroupId(this.clustersMap, x_c + 1, y_c),
-          south: village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c + 1),
-          west: village.groupId !== this.getGroupId(this.clustersMap, x_c - 1, y_c),
+          north:     village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c - 1),
+          east:      village.groupId !== this.getGroupId(this.clustersMap, x_c + 1, y_c),
+          south:     village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c + 1),
+          west:      village.groupId !== this.getGroupId(this.clustersMap, x_c - 1, y_c),
           northeast: village.groupId !== this.getGroupId(this.clustersMap, x_c + 1, y_c - 1),
           northwest: village.groupId !== this.getGroupId(this.clustersMap, x_c - 1, y_c - 1),
           southeast: village.groupId !== this.getGroupId(this.clustersMap, x_c + 1, y_c + 1),
           southwest: village.groupId !== this.getGroupId(this.clustersMap, x_c - 1, y_c + 1)
         };
 
-        // Check for player borders (lighter lines within same tribe)
-        const hasPlayerBorders = {
-          north: village.playerId !== this.getPlayerId(this.clustersMap, x_c, y_c - 1),
-          east: village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c),
-          south: village.playerId !== this.getPlayerId(this.clustersMap, x_c, y_c + 1),
-          west: village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c),
-          northeast: village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c - 1),
-          northwest: village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c - 1),
-          southeast: village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c + 1),
-          southwest: village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c + 1)
+        // Ally border mask: same group, different allyId — only where no group border.
+        // Guard: both sides must have a defined allyId to avoid undefined comparisons firing as true.
+        const hasAllyBorders = {
+          north:     !hasBorders.north     && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c, y_c - 1),
+          east:      !hasBorders.east      && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c + 1, y_c),
+          south:     !hasBorders.south     && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c, y_c + 1),
+          west:      !hasBorders.west      && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c - 1, y_c),
+          northeast: !hasBorders.northeast && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c + 1, y_c - 1),
+          northwest: !hasBorders.northwest && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c - 1, y_c - 1),
+          southeast: !hasBorders.southeast && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c + 1, y_c + 1),
+          southwest: !hasBorders.southwest && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c - 1, y_c + 1)
         };
 
-        const hardBorderColor =  this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 1)');
-        // Now draw borders with knowledge of which corners exist
-        if (hasBorders.north)
-          this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 0, hasBorders);
-        if (hasBorders.east)
-          this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 1, hasBorders);
-        if (hasBorders.south)
-          this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor , canvas, 2, hasBorders);
-        if (hasBorders.west)
-          this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 3, hasBorders);
+        // Player border mask: same group, same ally, different playerId — only where no group or ally border
+        const hasPlayerBorders = {
+          north:     !hasBorders.north     && !hasAllyBorders.north     && village.playerId !== this.getPlayerId(this.clustersMap, x_c, y_c - 1),
+          east:      !hasBorders.east      && !hasAllyBorders.east      && village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c),
+          south:     !hasBorders.south     && !hasAllyBorders.south     && village.playerId !== this.getPlayerId(this.clustersMap, x_c, y_c + 1),
+          west:      !hasBorders.west      && !hasAllyBorders.west      && village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c),
+          northeast: !hasBorders.northeast && !hasAllyBorders.northeast && village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c - 1),
+          northwest: !hasBorders.northwest && !hasAllyBorders.northwest && village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c - 1),
+          southeast: !hasBorders.southeast && !hasAllyBorders.southeast && village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c + 1),
+          southwest: !hasBorders.southwest && !hasAllyBorders.southwest && village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c + 1)
+        };
 
-        // Draw player borders (lighter, only where tribes are same)
+        const hardBorderColor = this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 1)');
+
+        // 1. Draw group borders (hard)
+        if (hasBorders.north) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 0, hasBorders);
+        if (hasBorders.east)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 1, hasBorders);
+        if (hasBorders.south) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 2, hasBorders);
+        if (hasBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 3, hasBorders);
+
+        // 2. Draw ally borders (hard, within same group)
+        if (hasAllyBorders.north) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 0, hasAllyBorders);
+        if (hasAllyBorders.east)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 1, hasAllyBorders);
+        if (hasAllyBorders.south) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 2, hasAllyBorders);
+        if (hasAllyBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 3, hasAllyBorders);
+
+        // 3. Draw player borders (light, within same ally)
         const lightBorderColor = this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 0.4)');
-        if (hasPlayerBorders.north && !hasBorders.north)
-          this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 0, hasPlayerBorders);
-        if (hasPlayerBorders.east && !hasBorders.east)
-          this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 1, hasPlayerBorders);
-        if (hasPlayerBorders.south && !hasBorders.south)
-          this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 2, hasPlayerBorders);
-        if (hasPlayerBorders.west && !hasBorders.west)
-          this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 3, hasPlayerBorders);
+        if (hasPlayerBorders.north) this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 0, hasPlayerBorders);
+        if (hasPlayerBorders.east)  this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 1, hasPlayerBorders);
+        if (hasPlayerBorders.south) this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 2, hasPlayerBorders);
+        if (hasPlayerBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 3, hasPlayerBorders);
         
         if (village.hasOwnProperty('tempOwnershipLog')) {
           const iconCanvasOffset = 4;
@@ -647,50 +667,60 @@ MapSdk = {
         ctx.fillStyle = village.isGroupVillage ? this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 1)') : this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 0.5)');
         ctx.fillRect((x_c - sector.x) * 5 + 0.25, (y_c - sector.y) * 5 + 0.25, 4.5, 4.5);
 
-        // Check all 8 neighbors (cardinal + diagonal) FIRST to know which borders exist
+        // Group border mask
         const hasBorders = {
-          north: village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c - 1),
-          east: village.groupId !== this.getGroupId(this.clustersMap, x_c + 1, y_c),
-          south: village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c + 1),
-          west: village.groupId !== this.getGroupId(this.clustersMap, x_c - 1, y_c),
+          north:     village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c - 1),
+          east:      village.groupId !== this.getGroupId(this.clustersMap, x_c + 1, y_c),
+          south:     village.groupId !== this.getGroupId(this.clustersMap, x_c, y_c + 1),
+          west:      village.groupId !== this.getGroupId(this.clustersMap, x_c - 1, y_c),
           northeast: village.groupId !== this.getGroupId(this.clustersMap, x_c + 1, y_c - 1),
           northwest: village.groupId !== this.getGroupId(this.clustersMap, x_c - 1, y_c - 1),
           southeast: village.groupId !== this.getGroupId(this.clustersMap, x_c + 1, y_c + 1),
           southwest: village.groupId !== this.getGroupId(this.clustersMap, x_c - 1, y_c + 1)
         };
 
-        // Check for player borders (lighter lines within same tribe)
-        const hasPlayerBorders = {
-          north: village.playerId !== this.getPlayerId(this.clustersMap, x_c, y_c - 1),
-          east: village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c),
-          south: village.playerId !== this.getPlayerId(this.clustersMap, x_c, y_c + 1),
-          west: village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c),
-          northeast: village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c - 1),
-          northwest: village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c - 1),
-          southeast: village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c + 1),
-          southwest: village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c + 1)
+        // Ally border mask: same group, different allyId — only where no group border
+        const hasAllyBorders = {
+          north:     !hasBorders.north     && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c, y_c - 1),
+          east:      !hasBorders.east      && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c + 1, y_c),
+          south:     !hasBorders.south     && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c, y_c + 1),
+          west:      !hasBorders.west      && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c - 1, y_c),
+          northeast: !hasBorders.northeast && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c + 1, y_c - 1),
+          northwest: !hasBorders.northwest && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c - 1, y_c - 1),
+          southeast: !hasBorders.southeast && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c + 1, y_c + 1),
+          southwest: !hasBorders.southwest && village.allyId !== undefined && village.allyId !== this.getAllyId(this.clustersMap, x_c - 1, y_c + 1)
         };
 
-        // Now draw borders with knowledge of which corners exist
-        if (hasBorders.north)
-          this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 0, hasBorders);
-        if (hasBorders.east)
-          this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 1, hasBorders);
-        if (hasBorders.south)
-          this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 2, hasBorders);
-        if (hasBorders.west)
-          this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 3, hasBorders);
+        // Player border mask: same group, same ally, different playerId
+        const hasPlayerBorders = {
+          north:     !hasBorders.north     && !hasAllyBorders.north     && village.playerId !== this.getPlayerId(this.clustersMap, x_c, y_c - 1),
+          east:      !hasBorders.east      && !hasAllyBorders.east      && village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c),
+          south:     !hasBorders.south     && !hasAllyBorders.south     && village.playerId !== this.getPlayerId(this.clustersMap, x_c, y_c + 1),
+          west:      !hasBorders.west      && !hasAllyBorders.west      && village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c),
+          northeast: !hasBorders.northeast && !hasAllyBorders.northeast && village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c - 1),
+          northwest: !hasBorders.northwest && !hasAllyBorders.northwest && village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c - 1),
+          southeast: !hasBorders.southeast && !hasAllyBorders.southeast && village.playerId !== this.getPlayerId(this.clustersMap, x_c + 1, y_c + 1),
+          southwest: !hasBorders.southwest && !hasAllyBorders.southwest && village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c + 1)
+        };
 
-        // Draw player borders (same color as cluster, very low opacity)
+        // 1. Draw group borders (hard, black)
+        if (hasBorders.north) this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 0, hasBorders);
+        if (hasBorders.east)  this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 1, hasBorders);
+        if (hasBorders.south) this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 2, hasBorders);
+        if (hasBorders.west)  this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 3, hasBorders);
+
+        // 2. Draw ally borders (hard, black — same weight as group on minimap)
+        if (hasAllyBorders.north) this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 0, hasAllyBorders);
+        if (hasAllyBorders.east)  this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 1, hasAllyBorders);
+        if (hasAllyBorders.south) this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 2, hasAllyBorders);
+        if (hasAllyBorders.west)  this.paintBorders_mini(sector, x_c, y_c, 'black', canvas, 3, hasAllyBorders);
+
+        // 3. Draw player borders (lighter)
         const playerBorderColor = 'rgba(40, 100, 35, 1)';
-        if (hasPlayerBorders.north && !hasBorders.north)
-          this.paintBorders_mini(sector, x_c, y_c, playerBorderColor, canvas, 0, hasPlayerBorders);
-        if (hasPlayerBorders.east && !hasBorders.east)
-          this.paintBorders_mini(sector, x_c, y_c, playerBorderColor, canvas, 1, hasPlayerBorders);
-        if (hasPlayerBorders.south && !hasBorders.south)
-          this.paintBorders_mini(sector, x_c, y_c, playerBorderColor, canvas, 2, hasPlayerBorders);
-        if (hasPlayerBorders.west && !hasBorders.west)
-          this.paintBorders_mini(sector, x_c, y_c, playerBorderColor, canvas, 3, hasPlayerBorders);
+        if (hasPlayerBorders.north) this.paintBorders_mini(sector, x_c, y_c, playerBorderColor, canvas, 0, hasPlayerBorders);
+        if (hasPlayerBorders.east)  this.paintBorders_mini(sector, x_c, y_c, playerBorderColor, canvas, 1, hasPlayerBorders);
+        if (hasPlayerBorders.south) this.paintBorders_mini(sector, x_c, y_c, playerBorderColor, canvas, 2, hasPlayerBorders);
+        if (hasPlayerBorders.west)  this.paintBorders_mini(sector, x_c, y_c, playerBorderColor, canvas, 3, hasPlayerBorders);
       }
     }
   },
@@ -773,6 +803,8 @@ if (typeof politicalMapReborn !== 'undefined') {
             premiumAccountTitle: 'Premium Account',
             premiumAccountHtml: 'A Premium Account is required to use Political Map Reborn\'s custom groups.',
             premiumAccountMissing: 'You have a Premium Account active and can therefore use Political Map Reborn\'s custom groups!',
+            allies: 'Allies',
+            enemies: 'Enemies'
           },
           settingsTitle: 'Political Map Reborn Settings',
           settingsLink: 'Political Map Reborn Settings',
@@ -922,13 +954,18 @@ if (typeof politicalMapReborn !== 'undefined') {
 
     #legacyPoliticalMapRebornGroups() {
       var groups = {};
-      $.each(TWMap.allyRelations, (allyId, relation) => { 
-          groups[allyId] = {
-            'allies': { [allyId]: allyId },
-            'color': relation === 'partner' ? 'rgb(0,160,244)' : 'rgb(244,0,0)',
-            'dataId': "_" + allyId,
-            'players': {}
-          };
+      $.each({ ...TWMap.allyRelations, [game_data.player.ally]: 'partner' }, (allyId, relation) => { 
+          relation = relation === 'partner' ? this.UserTranslation.legacyMap.allies : this.UserTranslation.legacyMap.enemies;
+          if (!groups[relation]) {
+            groups[relation] = {
+              'allies': { [allyId]: allyId },
+              'color': relation === this.UserTranslation.legacyMap.allies ? 'rgb(0,160,244)' : 'rgb(244,0,0)',
+              'dataId': "_" + relation,
+              'players': {}
+            };
+          } else {
+            groups[relation].allies[allyId] = allyId;
+          }
       });
       this.#setTribelessAndNotSetTribeGroup(groups);
       return groups;
