@@ -22,10 +22,11 @@ MapSdk = {
     this.mapStore = mapStore; 
     this.clustersMap = this.generateGrid(this.mapStore, mapBounds, politicalMapRebornGroups);
 
-    if (this.mapOverlay.mapHandler._spawnSector) {
-      //exists already, don't recreate
-    } else {
-      //doesn't exist yet
+    if (!this.mapOverlay.popup._displayForVillage) { //doesn't exist yet
+      this.mapOverlay.popup._displayForVillage = this.mapOverlay.popup.displayForVillage;
+    }
+
+    if (!this.mapOverlay.mapHandler._spawnSector) { //doesn't exist yet
       this.mapOverlay.mapHandler._spawnSector = this.mapOverlay.mapHandler.spawnSector;
     }
 
@@ -62,9 +63,137 @@ MapSdk = {
         }
       };
     };
+
+    this.mapOverlay.popup.displayForVillage = ((map) => function(e, a, t) {
+      this._displayForVillage(e, a, t);
+
+      const villageId = e && e.id;
+      if (!villageId) return;
+
+      const villageData = map.mapStore[villageId];
+      if (!villageData.showTempOwnershipLog) return;
+
+      const playersMap = politicalMapReborn.playersMap;
+      const { getPlayerGroup, groupToColor } = politicalMapReborn.getGroupLookup();
+      const formatGroupName = (groupName) =>
+        groupName ? `<div class="group" style="color: ${groupToColor[groupName]}">${groupName}</div>` : '';
+      const triggerGroupColor = groupToColor[villageData.lastOwnershipTriggerGroup] ?? '#2b7de9';
+      const formatTimestamp = (unixTs) => {
+        const d = new Date(Number(unixTs) * 1000);
+        const p = (n) => String(n).padStart(2, '0');
+        return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+      };
+      const getOwnerName = (ownerId) => {
+        if (ownerId == 0) return window.lang['acd537450651fef7501d8f80cb075fa3'];
+        return playersMap[ownerId]?.playerName ?? `Guest (${ownerId})`;
+      };
+
+      let ownershipRows = '';
+      for (let i = villageData.tempOwnershipLog.length - 1; i >= 0; i--) {
+        const { unixTimestamp, oldOwner, newOwner } = villageData.tempOwnershipLog[i];
+        ownershipRows += `<tr>
+          <td>${formatTimestamp(unixTimestamp)}</td>
+          <td>${getOwnerName(newOwner)}</td>
+          <td>${formatGroupName(getPlayerGroup(newOwner))}</td>
+          <td>${getOwnerName(oldOwner)}</td>
+          <td>${formatGroupName(getPlayerGroup(oldOwner))}</td>
+        </tr>`;
+      }
+
+      map.ensurePopupConquerStyles();
+
+      const popup = $('#map_popup');
+      const table = popup.find('#info_content').first();
+      if (!table.length) return;
+      if (!table.is('table')) return;
+
+      const tbody = table.children('tbody');
+      if (!tbody.length) return;
+      if (tbody.children('tr.pmrb-extra-row').length) return;
+
+      const conquerRows = `
+        <tr class="pmrb-extra-row">
+          <th colspan="2">
+            Conquer History
+            <div class="info-badge" style="background: ${triggerGroupColor}">i</div>
+          </th>
+        </tr>
+        <tr class="pmrb-extra-row">
+          <td colspan="2">
+            <table class="conquer-table">
+              <tbody>
+                <tr>
+                  <th class="date-cell">Date</th>
+                  <th>New Owner</th>
+                  <th>Group</th>
+                  <th>Old Owner</th>
+                  <th>Group</th>
+                </tr>
+                ${ownershipRows}
+              </tbody>
+            </table>
+          </td>
+        </tr>`;
+
+      const anchorRow = tbody.children('tr#info_ally_row').first();
+      if (anchorRow.length) {
+        anchorRow.after(conquerRows);
+        return;
+      }
+
+      const rows = tbody.children('tr');
+      if (!rows.length) return;
+      $(rows[rows.length - 1]).before(conquerRows);
+    })(this);
+
     this.groupsColors = politicalMapRebornGroups.groupsColors;
     this.mapOverlay.reload();
     return 'Initialised Map SDK';
+  },
+  ensurePopupConquerStyles() {
+    if ($('#popup-conquer-style').length) return;
+
+    $('head').append(`<style id="popup-conquer-style">
+      #map_popup #info_content .info-badge {
+        display: inline-block;
+        background: blue;
+        width: 8px;
+        height: 8px;
+        padding: 4px;
+        color: white;
+        font-size: 9px;
+        text-align: center;
+        font-weight: bold;
+        border-radius: 10px;
+      }
+
+      #map_popup #info_content .conquer-table {
+        width: 100%;
+        background: #e5d7b2;
+      }
+
+      #map_popup #info_content .date-cell {
+        width: 122px;
+      }
+
+      #map_popup #info_content .group-ally {
+        color: #6ecf6e;
+        font-weight: bold;
+      }
+
+      #map_popup #info_content .group-enemy {
+        color: red;
+        font-weight: bold;
+      }
+
+      #map_popup #info_content .group {
+        font-weight: bold;
+      }
+
+      #map_popup #info_content .center {
+        text-align: center;
+      }
+    </style>`);
   },
   // Helper to get ally_id at coordinate
   getGroupId(villages, x, y) {
@@ -89,6 +218,8 @@ MapSdk = {
     var playerIndexById = {};
     var playerVillagesByGroup = {};
     var allGroupVillages = [];
+    var villagesTempOwnershipLog = {};
+    var villagesLastOwnershipTriggerGroup = {};
 
     // Pass 1: collect group village coordinates and compute tight grid bounds.
     // mapBounds covers all non-barbarian villages, which can extend far beyond
@@ -110,7 +241,12 @@ MapSdk = {
           if (x > gridMaxX) gridMaxX = x;
           if (y < gridMinY) gridMinY = y;
           if (y > gridMaxY) gridMaxY = y;
-          groupVillageEntries.push({ key, x, y, groupId, playerId: village.playerId, tempOwnershipLog: { displayTempLog: false }});
+          var villageData = { key, x, y, groupId, playerId: village.playerId };
+          if (village.showTempOwnershipLog) {
+            villageData.tempOwnershipLog = village.tempOwnershipLog;
+            villageData.lastOwnershipTriggerGroup = village.lastOwnershipTriggerGroup ?? '';
+          }
+          groupVillageEntries.push(villageData);
         }
       }
     }
@@ -136,7 +272,7 @@ MapSdk = {
     const radiusSq = radius * radius;
 
     // Pass 2: build source lists using tight grid bounds
-    for (const { key, x, y, groupId, playerId } of groupVillageEntries) {
+    for (const { key, x, y, groupId, playerId, tempOwnershipLog, lastOwnershipTriggerGroup } of groupVillageEntries) {
       if (groupIndexById[groupId] === undefined) {
         groupIndexById[groupId] = groupIds.length;
         groupIds.push(groupId);
@@ -155,6 +291,8 @@ MapSdk = {
       playerVillagesByGroup[groupId].push({ key, cellIndex, ownerIndex: playerIndex });
       allGroupVillages.push({ key, cellIndex, ownerIndex: groupIndex });
       villagesToGroupsCoords[this.getCoordKey(x, y)] = groupId;
+      if (tempOwnershipLog !== undefined) villagesTempOwnershipLog[this.getCoordKey(x, y)] = tempOwnershipLog;
+      if (lastOwnershipTriggerGroup !== undefined) villagesLastOwnershipTriggerGroup[this.getCoordKey(x, y)] = lastOwnershipTriggerGroup;
     }
 
     // Multi-source BFS flood fill: all source villages are seeded into the queue at once,
@@ -241,9 +379,12 @@ MapSdk = {
           playerId: playerAssignments[ci] === -1 ? undefined : playerIds[playerAssignments[ci]],
           isGroupVillage: villagesToGroupsCoords[key] || false
         };
+        if (villagesTempOwnershipLog[key] !== undefined) {
+          result[key].tempOwnershipLog = villagesTempOwnershipLog[key];
+          result[key].lastOwnershipTriggerGroup = villagesLastOwnershipTriggerGroup[key] ?? '';
+        }
       }
     }
-
     return result;
   },
   pixelByCoord(x_s, y_s, x_c, y_c) {
@@ -374,6 +515,7 @@ MapSdk = {
   redrawSector(sector, canvas, x_s, y_s) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const CanvasOffset = 4;
 
     // Calculate sector bounds
     const sectorSize = this.mapOverlay.map.sectorSize;
@@ -387,7 +529,6 @@ MapSdk = {
       for (let x_c = minX; x_c <= maxX; x_c++) {
         const coordsStr = x_c.toString().padStart(3, '0') + y_c.toString().padStart(3, '0');
         const village = this.clustersMap[coordsStr];
-        
         if (!village) continue;
 
         // Fill the village tile with low opacity group color
@@ -395,8 +536,8 @@ MapSdk = {
           let pos = this.pixelByCoord(x_s, y_s, x_c, y_c);
           const halfScaleX = TWMap.map.scale[0] / 2;
           const halfScaleY = TWMap.map.scale[1] / 2;
-          let baseX = pos[0] - halfScaleX + 4;
-          let baseY = pos[1] - halfScaleY + 4;
+          let baseX = pos[0] - halfScaleX + CanvasOffset;
+          let baseY = pos[1] - halfScaleY + CanvasOffset;
           const W = TWMap.map.scale[0];
           const H = TWMap.map.scale[1];
           ctx.fillStyle = this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 0.1)');
@@ -448,6 +589,39 @@ MapSdk = {
           this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 2, hasPlayerBorders);
         if (hasPlayerBorders.west && !hasBorders.west)
           this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 3, hasPlayerBorders);
+        
+        if (village.hasOwnProperty('tempOwnershipLog')) {
+          const iconCanvasOffset = 4;
+          const iconMargin = 5;
+          const iconRadius = 6;
+          const iconBorderWidth = 1;
+          const iconTextNudgeY = 0.2;
+          let pos = this.pixelByCoord(x_s, y_s, x_c, y_c);
+          const halfScaleX = TWMap.map.scale[0] / 2;
+          const halfScaleY = TWMap.map.scale[1] / 2;
+          let baseX = pos[0] - halfScaleX + iconCanvasOffset;
+          let baseY = pos[1] - halfScaleY + iconCanvasOffset;
+          const W = TWMap.map.scale[0];
+
+          const iconX = baseX + W - iconMargin;
+          const iconY = baseY + iconMargin;
+          const triggerGroup = village.lastOwnershipTriggerGroup;
+          const triggerGroupColor = politicalMapReborn?.groups?.[triggerGroup]?.color ?? 'black';
+
+          ctx.beginPath();
+          ctx.arc(iconX, iconY, iconRadius, 0, Math.PI * 2);
+          ctx.fillStyle = triggerGroupColor;
+          ctx.fill();
+          ctx.lineWidth = iconBorderWidth;
+          ctx.strokeStyle = 'black';
+          ctx.stroke();
+
+          ctx.fillStyle = 'white';
+          ctx.font = 'bold 9px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('i', iconX, iconY + iconTextNudgeY);
+        }
       }
     }
   },
@@ -658,6 +832,28 @@ if (typeof politicalMapReborn !== 'undefined') {
       };
     }
 
+    getGroupLookup() {
+      const playerToGroup = {};
+      const allyToGroup = {};
+      const groupToColor = {};
+
+      Object.entries(this.groups ?? {}).forEach(([groupName, group]) => {
+        if (groupName === '0') return;
+        groupToColor[groupName] = group.color;
+        Object.values(group.players ?? {}).forEach((playerId) => {
+          playerToGroup[playerId] = groupName;
+        });
+        Object.values(group.allies ?? {}).forEach((allyId) => {
+          allyToGroup[allyId] = groupName;
+        });
+      });
+
+      const getPlayerGroup = (playerId) =>
+        playerToGroup[playerId] ?? allyToGroup[this.playersMap[playerId]?.allyId] ?? '';
+
+      return { playerToGroup, allyToGroup, groupToColor, getPlayerGroup };
+    }
+
     async #fetchPoliticalMapRebornGroups() {
       UI.InfoMessage(this.UserTranslation.informationMessages.fetchingGroups);
       const requestdata = await this.#fetchPage(this.#generateUrl('map'));
@@ -835,7 +1031,8 @@ if (typeof politicalMapReborn !== 'undefined') {
             if (y < mapBounds.smallestY) mapBounds.smallestY = y;
             else if (y > mapBounds.biggestY) mapBounds.biggestY = y;
 
-            villagesMap[id] = { x, y, allyId: this.playersMap[playerId]?.allyId ?? 0, playerId: playerId, tempOwnershipLog: { displayTempLog: false }};
+            villagesMap[id] = { x, y, allyId: this.playersMap[playerId]?.allyId ?? 0, playerId: playerId, 
+              tempOwnershipLog: [], showTempOwnershipLog: false, lastOwnershipTriggerGroup: '' };
           }
         });
       localStorage.setItem(this.mapBoundsText, JSON.stringify(mapBounds));
@@ -855,16 +1052,23 @@ if (typeof politicalMapReborn !== 'undefined') {
       var fetchedWorldVillages = await this.#fetchPage(
         '/interface.php?func=get_conquer&since=' + Math.floor(Date.now() / 1000  + 60 - 24 * 60 * 60) // Added 60 seconds to avoid potential issues with the data no longer being avaliable due to more than 24 hours having passed.
       );
+      const { getPlayerGroup } = this.getGroupLookup();
+
       fetchedWorldVillages
         .trim()
         .split('\n')
         .forEach((line) => {
           const [villageId, unixTimestamp, newOwner, oldOwner] = line.split(',');
           if (this.villagesMap.hasOwnProperty(villageId)) {
-            this.villagesMap[villageId].playerId = newOwner
-            this.villagesMap[villageId].tempOwnershipLog = { unixTimestamp, newOwner, oldOwner, displayTempLog: false };
-            debugger;
-          };
+            this.villagesMap[villageId].playerId = newOwner;
+            this.villagesMap[villageId].tempOwnershipLog.push({ unixTimestamp, oldOwner, newOwner });
+            const oldGroup = getPlayerGroup(oldOwner);
+            const newGroup = getPlayerGroup(newOwner);
+            if (oldGroup && newGroup && oldGroup !== newGroup) {
+              this.villagesMap[villageId].showTempOwnershipLog = true;
+              this.villagesMap[villageId].lastOwnershipTriggerGroup = oldGroup;
+            }
+          }
         });
     }
 
