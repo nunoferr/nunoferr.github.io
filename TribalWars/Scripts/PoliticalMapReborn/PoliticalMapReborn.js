@@ -242,8 +242,8 @@ MapSdk = {
     for (const [key, village] of Object.entries(villages)) {
       if (village) {
         // To handle cases where players are allyless or their tribe was not added to a group,
-        // but the player themselves were added to a group, we check player group first before tribe group.
-        const groupId = politicalMapRebornGroups.players[village.playerId] ?? politicalMapRebornGroups.allies[village.allyId];
+        // but the player themselves were added to a group, we check player group first before tribe group and then village.
+        const groupId = politicalMapRebornGroups.players[village.playerId] ?? politicalMapRebornGroups.allies[village.allyId] ?? politicalMapRebornGroups.villages[key];
 
         if (groupId !== undefined) {
           const x = Number(village.x), y = Number(village.y);
@@ -982,7 +982,8 @@ if (typeof politicalMapReborn !== 'undefined') {
         'allies': { [0]: 0 },
         'color': 'rgb(156, 114, 69)',
         'dataId': "_" + 0,
-        'players': {}
+        'players': {},
+        'villages': {}
       };
     }
 
@@ -1009,6 +1010,10 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #fetchPoliticalMapRebornGroups() {
+      return await this.#fetchMapGroups(false);
+    }
+
+    async #fetchMapGroups(ignorePoliticalMapRebornGroups = true) {
       UI.InfoMessage(this.UserTranslation.informationMessages.fetchingGroups);
       const requestdata = await this.#fetchPage(this.#generateUrl('map'));
       const parsedHtml = $(requestdata);
@@ -1017,65 +1022,89 @@ if (typeof politicalMapReborn !== 'undefined') {
       for (let i = 0; i < groupElements.length; i++) {
         const element = groupElements[i];
         var groupName = $(element).find('.group-label').text().trim();
-        if (groupName.startsWith(this.politicalMapNamePrefix)) {
-          var color = $(element).find('.color_picker_launcher');
-          const dataId = $(element).attr('data-id');
-          
-          var players = {};
-          var allies = {};
-          if (dataId) {
-            try {
-              const playersUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_get_players' });
-              const playersData = await $.ajax({
-                url: playersUrl,
-                type: 'POST',
-                data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
-                contentType: 'application/x-www-form-urlencoded',
-                dataType: 'json'
-              });
-              
-              if (Array.isArray(playersData)) {
-                playersData.forEach(player => {
-                  if (player.id && player.name) players[player.name] = player.id;
-                });
-              }
-            } catch (error) {
-              console.error('Failed to fetch players for group:', error);
-            }
+        if (ignorePoliticalMapRebornGroups && groupName.startsWith(this.politicalMapNamePrefix)) continue;
+        else if (!ignorePoliticalMapRebornGroups && !groupName.startsWith(this.politicalMapNamePrefix)) continue;
+        
+        var color = $(element).find('.color_picker_launcher');
+        const dataId = $(element).attr('data-id');
+        
+        var players = {};
+        var allies = {};
+        var villages = {};
+        if (dataId) {
+          if (ignorePoliticalMapRebornGroups && !$(element).find(':checkbox').first().prop('checked')) continue; // Skip inactive groups
+          try {
+            const playersUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_get_players' });
+            const playersData = await $.ajax({
+              url: playersUrl,
+              type: 'POST',
+              data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
+              contentType: 'application/x-www-form-urlencoded',
+              dataType: 'json'
+            });
             
-            try {
-              const alliesUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_get_tribes' });
-              const alliesData = await $.ajax({
-                url: alliesUrl,
-                type: 'POST',
-                data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
-                contentType: 'application/x-www-form-urlencoded',
-                dataType: 'json'
+            if (Array.isArray(playersData)) {
+              playersData.forEach(player => {
+                if (player.id && player.name) players[player.name] = player.id;
               });
-              
-              if (Array.isArray(alliesData)) {
-                alliesData.forEach(ally => {
-                  if (ally.id && ally.tag) allies[ally.tag] = ally.id;
-                });
-              }
-            } catch (error) {
-              console.error('Failed to fetch allies for group:', error);
             }
+          } catch (error) {
+            console.error('Failed to fetch players for group:', error);
           }
-          groups[groupName.substr(this.politicalMapNamePrefix.length)] = {
-            color: `rgb(${color.attr('data-r')}, ${color.attr('data-g')}, ${color.attr('data-b')})`,
-            dataId: dataId,
-            players: players,
-            allies: allies
+          
+          try {
+            const alliesUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_get_tribes' });
+            const alliesData = await $.ajax({
+              url: alliesUrl,
+              type: 'POST',
+              data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
+              contentType: 'application/x-www-form-urlencoded',
+              dataType: 'json'
+            });
+            
+            if (Array.isArray(alliesData)) {
+              alliesData.forEach(ally => {
+                if (ally.id && ally.tag) allies[ally.tag] = ally.id;
+              });
+            }
+          } catch (error) {
+            console.error('Failed to fetch allies for group:', error);
           }
+
+          try {
+            const villagesUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_get_villages' });
+            const villagesData = await $.ajax({
+              url: villagesUrl,
+              type: 'POST',
+              data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
+              contentType: 'application/x-www-form-urlencoded',
+              dataType: 'json'
+            });
+            
+            if (Array.isArray(villagesData)) {
+              villagesData.forEach(village => {
+                if (village.id) villages[village.id] = village.id;
+              });
+            }
+          } catch (error) {
+            console.error('Failed to fetch villages for group:', error);
+          }
+        }
+        var groupName = !ignorePoliticalMapRebornGroups ? groupName.substr(this.politicalMapNamePrefix.length) : groupName;
+        groups[groupName] = {
+          color: `rgb(${color.attr('data-r')}, ${color.attr('data-g')}, ${color.attr('data-b')})`,
+          dataId: dataId,
+          players: players,
+          allies: allies,
+          villages: villages
         }
       }
       this.#setTribelessAndNotSetTribeGroup(groups);
       return groups;
     }
 
-    #legacyPoliticalMapRebornGroups() {
-      var groups = {};
+    async #legacyPoliticalMapRebornGroups() {
+      var groups = await this.#fetchMapGroups();
       $.each({ ...TWMap.allyRelations, [game_data.player.ally]: 'partner' }, (allyId, relation) => { 
           const relationObj = ({
             partner: {
@@ -1121,7 +1150,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         return;
       }
 
-      this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : this.#legacyPoliticalMapRebornGroups();
+      this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : await this.#legacyPoliticalMapRebornGroups();
       this.initUI();
     }
 
@@ -1294,13 +1323,16 @@ if (typeof politicalMapReborn !== 'undefined') {
       UI.InfoMessage(this.UserTranslation.informationMessages.creatingAndPaintingClusters);
       // Double rAF: first fires before paint, second fires after paint completes
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-      var politicalMapRebornGroups = { players: {}, allies: {}, groupsColors: {} };
+      var politicalMapRebornGroups = { players: {}, allies: {}, villages: {},groupsColors: {} };
       $.each(this.groups, (_, group) => {
         $.each(group.players ?? {}, (_, playerId) => {
           politicalMapRebornGroups.players[playerId] = group.dataId;
         });
         $.each(group.allies ?? {}, (_, allyId) => {
           politicalMapRebornGroups.allies[allyId] = group.dataId;
+        });
+        $.each(group.villages ?? {}, (_, villageId) => {
+          politicalMapRebornGroups.villages[villageId] = group.dataId;
         });
         const rgbaGroupColor = group.color.replace('rgb', 'rgba').replace(')', ', 0.3)');
         politicalMapRebornGroups.groupsColors[group.dataId] = rgbaGroupColor;
@@ -1589,7 +1621,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       }
       this.legacyPoliticalMapEnabled = !this.legacyPoliticalMapEnabled;
       localStorage.setItem(this.legacyPoliticalMapEnabledText, this.legacyPoliticalMapEnabled);
-      this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : this.#legacyPoliticalMapRebornGroups();
+      this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : await this.#legacyPoliticalMapRebornGroups();
       $('#politicalMapRebornSettings .gm-flex').toggle();
       this.#refreshGroupsUI();
     }
