@@ -864,7 +864,6 @@ if (typeof politicalMapReborn !== 'undefined') {
         game_data.locale in PoliticalMapReborn.PoliticalMapRebornTranslations()
           ? (this.UserTranslation = PoliticalMapReborn.PoliticalMapRebornTranslations()[game_data.locale])
           : PoliticalMapReborn.PoliticalMapRebornTranslations().en_US;
-      this.UserTranslation = PoliticalMapReborn.PoliticalMapRebornTranslations().en_US;
 
       this.alliesMapText = "alliesMapFromTwApi_" + game_data.world;
       this.playersMapText = "playersFromTwApi_" + game_data.world;
