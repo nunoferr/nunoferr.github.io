@@ -848,7 +848,8 @@ if (typeof politicalMapReborn !== 'undefined') {
             premiumAccountHtml: 'A Premium Account is required to use Political Map Reborn\'s custom groups.',
             premiumAccountMissing: 'You have a Premium Account active and can therefore use Political Map Reborn\'s custom groups!',
             allies: 'Allies',
-            enemies: 'Enemies'
+            enemies: 'Enemies',
+            nonAggressionPact: 'Non-Aggression Pact'
           },
           settingsTitle: 'Political Map Reborn Settings',
           settingsLink: 'Political Map Reborn Settings',
@@ -922,7 +923,8 @@ if (typeof politicalMapReborn !== 'undefined') {
             premiumAccountHtml: 'É necessária uma Conta Premium para usar os grupos personalizados do Political Map Reborn.',
             premiumAccountMissing: 'Você tem uma Conta Premium ativa e, portanto, pode usar os grupos personalizados do Political Map Reborn!',
             allies: 'Aliados',
-            enemies: 'Inimigos'
+            enemies: 'Inimigos',
+            nonAggressionPact: 'Pacto de Nao Agressao'
           },
           settingsTitle: 'Configurações do Political Map Reborn',
           settingsLink: 'Configurações do Political Map Reborn',
@@ -1075,16 +1077,33 @@ if (typeof politicalMapReborn !== 'undefined') {
     #legacyPoliticalMapRebornGroups() {
       var groups = {};
       $.each({ ...TWMap.allyRelations, [game_data.player.ally]: 'partner' }, (allyId, relation) => { 
-          relation = relation === 'partner' ? this.UserTranslation.legacyMap.allies : this.UserTranslation.legacyMap.enemies;
-          if (!groups[relation]) {
-            groups[relation] = {
+          const relationObj = ({
+            partner: {
+              translation: this.UserTranslation.legacyMap.allies,
+              color: 'rgb(0,160,244)',
+            },
+            enemy: {
+              translation: this.UserTranslation.legacyMap.enemies,
+              color: 'rgb(244,0,0)',
+            },
+            nap: {
+              translation: this.UserTranslation.legacyMap.nonAggressionPact,
+              color: 'rgb(128,0,128)',
+            },
+          }[relation]) ?? {
+            translation: '_0',
+            color: 'rgb(156, 114, 69)'
+          };
+
+          if (!groups[relationObj.translation]) {
+            groups[relationObj.translation] = {
               'allies': { [allyId]: allyId },
-              'color': relation === this.UserTranslation.legacyMap.allies ? 'rgb(0,160,244)' : 'rgb(244,0,0)',
-              'dataId': "_" + relation,
+              'color': relationObj.color,
+              'dataId': "_" + relationObj.translation,
               'players': {}
             };
           } else {
-            groups[relation].allies[allyId] = allyId;
+            groups[relationObj.translation].allies[allyId] = allyId;
           }
       });
       this.#setTribelessAndNotSetTribeGroup(groups);
