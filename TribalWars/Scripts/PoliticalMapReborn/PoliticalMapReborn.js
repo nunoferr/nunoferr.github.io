@@ -968,7 +968,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       this.legacyPoliticalMapEnabled =
         localStorage.getItem(this.legacyPoliticalMapEnabledText) !== null
             ? JSON.parse(localStorage.getItem(this.legacyPoliticalMapEnabledText))
-          : false;
+          : game_data.features.Premium.active ? false : true; // Default to legacy map for non-premium users, as they can't create custom groups
       
       this.politicalMapNamePrefix = "PoliticalMapReborn_";
       this.groups = {};
