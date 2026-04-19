@@ -856,6 +856,80 @@ if (typeof politicalMapReborn !== 'undefined') {
           runPoliticalMapReborn: 'Run Political Map Reborn',
           credits: 'Political Map Reborn script v0.1.6 by NunoF-',
         },
+        pt_PT: {
+          informationMessages: {
+            loadingData: 'A carregar dados...',
+            creatingAndPaintingClusters: 'A criar e desenhar os clusters...',
+            politicalMapRebornLoaded: 'Political Map Reborn carregado.',
+            fetchingGroups: 'A carregar os grupos do Political Map Reborn',
+            fetchingLatestConquers: 'A carregar as últimas conquistas...',
+            groupCreatedSuccessfully: 'Grupo criado com sucesso',
+            groupUpdated: 'Grupo atualizado',
+            groupRemoved: 'Grupo removido',
+            playerAddedToGroup: 'Jogador adicionado ao grupo',
+            playerRemovedFromGroup: 'Jogador removido do grupo',
+            allyAddedToGroup: 'Tribo adicionada ao grupo',
+            allyRemovedFromGroup: 'Tribo removida do grupo',
+          },
+          errors: {
+            notMapScreen: 'É apenas possível correr o Political Map Reborn no ecrã do mapa.',
+            noGroupsCreated: 'Não existem grupos criados no Political Map Reborn.</br>Por favor, crie pelo menos um grupo para correr o mapa.',
+            groupNameRequired: 'O nome do grupo não pode estar vazio.',
+            groupNameExists: 'O nome do grupo já existe',
+            playerNameRequired: 'O nome do jogador é obrigatório',
+            groupRequired: 'O grupo é obrigatório',
+            groupNotFound: 'O grupo não existe',
+            playerAlreadyInGroup: 'O jogador já está em um grupo',
+            playerNotFound: 'O jogador não existe',
+            allyNameRequired: 'O nome da tribo é obrigatório',
+            allyAlreadyInGroup: 'A tribo já está em um grupo',
+            allyNotFound: 'A tribo não existe'
+          },
+          groups: {
+            editTitle: 'Editar Grupo',
+            saveButton: 'Salvar Alterações',
+            deleteButton: 'Remover Grupo',
+            confirmRemoveGroup: 'Tem certeza de que deseja remover este grupo?',
+            confirmRemovePlayer: 'Tem certeza de que deseja remover este jogador do grupo?',
+            confirmRemoveAlly: 'Tem certeza de que deseja remover esta tribo do grupo?',
+            addPlayerUI: {
+              title: 'Adicionar Jogador a um Grupo',
+              player: 'Jogador',
+              group: 'Grupo',
+              button: 'Adicionar Jogador'
+            },
+            addAllyUI: {
+              title: 'Adicionar Tribo a um Grupo',
+              ally: 'Tribo',
+              group: 'Grupo',
+              button: 'Adicionar Tribo'
+            },
+            createGroupUI: {
+              title: 'Criar um Grupo',
+              groupName: 'Nome do Grupo',
+              color: 'Cor',
+              button: 'Criar Grupo'
+            },
+          },
+          tableHeaders: {
+            group: 'Grupo',
+            member: 'Membro',
+            remove: 'Remover'
+          },
+          legacyMap: {
+            enableLegacyMap: 'Ativar Mapa Político Legacy',
+            premiumAccountTitle: 'Conta Premium',
+            premiumAccountHtml: 'Uma Conta Premium é necessária para usar os grupos personalizados do Political Map Reborn.',
+            premiumAccountMissing: 'Você tem uma Conta Premium ativa e, portanto, pode usar os grupos personalizados do Political Map Reborn!',
+            allies: 'Aliados',
+            enemies: 'Inimigos'
+          },
+          settingsTitle: 'Configurações do Political Map Reborn',
+          settingsLink: 'Configurações do Political Map Reborn',
+          reloadButton: 'Recarregar Political Map Reborn',
+          runPoliticalMapReborn: 'Executar Political Map Reborn',
+          credits: 'Script Political Map Reborn v0.1.6 por NunoF-',
+        },
       };
     }
 
