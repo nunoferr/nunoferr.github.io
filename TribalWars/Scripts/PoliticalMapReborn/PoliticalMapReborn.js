@@ -5,8 +5,8 @@
  * Author: NunoF-
  * Author URL: https://nunoferr.github.io/
  * Author Contact: Discord - ducks4ever
- * Special Thanks To:  Shinko to Kuma support during development, and Thomas "Sass" Ameye for making their MapSDK 
- *                     publicly available.
+ * Special Thanks To:  Shinko to Kuma support during development, Thomas "Sass" Ameye for making their MapSDK 
+ *                     publicly available, and valtheran88 for their political map script expertise and help beta testing.
  * Approved:
  * Approved Date:
  * Forum URL (.net):
