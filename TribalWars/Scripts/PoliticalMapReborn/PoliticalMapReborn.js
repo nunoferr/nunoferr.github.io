@@ -1510,12 +1510,12 @@ if (typeof politicalMapReborn !== 'undefined') {
           </td>
         </tr>`);
         Object.entries(group.players).forEach(([playerName, playerId]) => {
-          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${playerName} <i>(player)</i></td><td class="gm-remove-cell">
+          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${playerName} <i>(${this.UserTranslation.groups.addPlayerUI.player})</i></td><td class="gm-remove-cell">
             <div class="gm-remove-btn" onclick="politicalMapReborn.removePlayerFromGroup(event, '${groupName}', '${playerName}')"></div>
           </td></tr>`);
         });
         Object.keys(group.allies).forEach(allyTag => {
-          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${allyTag} <i>(ally)</i></td><td class="gm-remove-cell">
+          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${allyTag} <i>(${this.UserTranslation.groups.addAllyUI.ally})</i></td><td class="gm-remove-cell">
             <div class="gm-remove-btn" onclick="politicalMapReborn.removeAllyFromGroup(event, '${groupName}', '${allyTag}')"></div>
           </td></tr>`);
         });
