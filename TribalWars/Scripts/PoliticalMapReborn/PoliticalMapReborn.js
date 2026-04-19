@@ -71,7 +71,8 @@ MapSdk = {
       if (!villageId) return;
 
       const villageData = map.mapStore[villageId];
-      if (!villageData.showTempOwnershipLog) return;
+      // Barbarian villages won't have villageData set
+      if (villageData === undefined || !villageData.showTempOwnershipLog) return;
 
       const playersMap = politicalMapReborn.playersMap;
       const { getPlayerGroup, groupToColor } = politicalMapReborn.getGroupLookup();
