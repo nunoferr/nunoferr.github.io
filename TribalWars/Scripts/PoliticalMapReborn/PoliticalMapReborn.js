@@ -116,7 +116,7 @@ MapSdk = {
         <tr class="pmrb-extra-row">
           <th colspan="2">
             Conquer History
-            <div class="info-badge" style="background: ${triggerGroupColor}">i</div>
+            <div class="info-badge" style="background: ${triggerGroupColor}"><div class="info-badge-text">H</div></div>
           </th>
         </tr>
         <tr class="pmrb-extra-row">
@@ -168,13 +168,17 @@ MapSdk = {
         border-radius: 10px;
       }
 
+      #map_popup #info_content .info-badge .info-badge-text {
+        margin-top: -1px;
+      }
+
       #map_popup #info_content .conquer-table {
         width: 100%;
         background: #e5d7b2;
       }
 
       #map_popup #info_content .date-cell {
-        width: 122px;
+        width: 140px;
       }
 
       #map_popup #info_content .group-ally {
@@ -421,8 +425,8 @@ MapSdk = {
       strokeStyle = 'black',
       text,
       textColor = 'white',
-      font = 'bold 9px Arial',
-      textNudgeY = 0.2
+      font = 'bold 8px Arial',
+      textNudgeY = 0.5
     } = options;
 
     ctx.beginPath();
@@ -451,7 +455,7 @@ MapSdk = {
 
     this.drawCircleIcon(ctx, iconX, iconY, 6, triggerGroupColor, {
       borderWidth: 1,
-      text: 'i'
+      text: 'H'
     });
   },
   paintGroupVillageIcon(ctx, village, x_s, y_s, x_c, y_c) {
