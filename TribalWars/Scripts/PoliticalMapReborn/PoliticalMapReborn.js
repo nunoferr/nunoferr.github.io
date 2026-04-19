@@ -1,6 +1,6 @@
 /*
  * Script Name: Political Map Reborn
- * Version: v0.1.7
+ * Version: v0.1.8
  * Last Updated:
  * Author: NunoF-
  * Author URL: https://nunoferr.github.io/
@@ -855,7 +855,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           settingsLink: 'Political Map Reborn Settings',
           reloadButton: 'Reload Political Map Reborn',
           runPoliticalMapReborn: 'Run Political Map Reborn',
-          credits: 'Political Map Reborn script v0.1.7 by NunoF-',
+          credits: 'Political Map Reborn script v0.1.8 by NunoF-',
         },
         pt_PT: {
           informationMessages: {
@@ -930,7 +930,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           settingsLink: 'Configurações do Political Map Reborn',
           reloadButton: 'Recarregar Political Map Reborn',
           runPoliticalMapReborn: 'Executar Political Map Reborn',
-          credits: 'Script Political Map Reborn v0.1.7 por NunoF-',
+          credits: 'Script Political Map Reborn v0.1.8 por NunoF-',
         },
       };
     }
