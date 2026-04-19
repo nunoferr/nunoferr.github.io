@@ -924,7 +924,7 @@ if (typeof politicalMapReborn !== 'undefined') {
             premiumAccountMissing: 'Você tem uma Conta Premium ativa e, portanto, pode usar os grupos personalizados do Political Map Reborn!',
             allies: 'Aliados',
             enemies: 'Inimigos',
-            nonAggressionPact: 'Pacto de Nao Agressao'
+            nonAggressionPact: 'Pacto de Não Agressão'
           },
           settingsTitle: 'Configurações do Political Map Reborn',
           settingsLink: 'Configurações do Political Map Reborn',
