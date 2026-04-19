@@ -589,26 +589,42 @@ MapSdk = {
           southwest: !hasBorders.southwest && !hasAllyBorders.southwest && village.playerId !== this.getPlayerId(this.clustersMap, x_c - 1, y_c + 1)
         };
 
-        const hardBorderColor = this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 1)');
-
-        // 1. Draw group borders (hard)
-        if (hasBorders.north) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 0, hasBorders);
-        if (hasBorders.east)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 1, hasBorders);
-        if (hasBorders.south) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 2, hasBorders);
-        if (hasBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 3, hasBorders);
-
-        // 2. Draw ally borders (hard, within same group)
-        if (hasAllyBorders.north) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 0, hasAllyBorders);
-        if (hasAllyBorders.east)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 1, hasAllyBorders);
-        if (hasAllyBorders.south) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 2, hasAllyBorders);
-        if (hasAllyBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 3, hasAllyBorders);
-
-        // 3. Draw player borders (light, within same ally)
+        const hardBorderColor  = this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 1)');
         const lightBorderColor = this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 0.4)');
-        if (hasPlayerBorders.north) this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 0, hasPlayerBorders);
-        if (hasPlayerBorders.east)  this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 1, hasPlayerBorders);
-        if (hasPlayerBorders.south) this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 2, hasPlayerBorders);
-        if (hasPlayerBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 3, hasPlayerBorders);
+
+        // Combined masks: higher-tier borders act as walls, preventing line overshoot into adjacent segments.
+        const hasAllyOrGroupBorders = {
+          north:     hasBorders.north     || hasAllyBorders.north,
+          east:      hasBorders.east      || hasAllyBorders.east,
+          south:     hasBorders.south     || hasAllyBorders.south,
+          west:      hasBorders.west      || hasAllyBorders.west,
+          northeast: hasBorders.northeast || hasAllyBorders.northeast,
+          northwest: hasBorders.northwest || hasAllyBorders.northwest,
+          southeast: hasBorders.southeast || hasAllyBorders.southeast,
+          southwest: hasBorders.southwest || hasAllyBorders.southwest
+        };
+        const hasAnyBorders = {
+          north:     hasAllyOrGroupBorders.north     || hasPlayerBorders.north,
+          east:      hasAllyOrGroupBorders.east      || hasPlayerBorders.east,
+          south:     hasAllyOrGroupBorders.south     || hasPlayerBorders.south,
+          west:      hasAllyOrGroupBorders.west      || hasPlayerBorders.west,
+          northeast: hasAllyOrGroupBorders.northeast || hasPlayerBorders.northeast,
+          northwest: hasAllyOrGroupBorders.northwest || hasPlayerBorders.northwest,
+          southeast: hasAllyOrGroupBorders.southeast || hasPlayerBorders.southeast,
+          southwest: hasAllyOrGroupBorders.southwest || hasPlayerBorders.southwest
+        };
+
+        // Group + ally borders share the same color and cap mask, so their triggers merge into hasAllyOrGroupBorders
+        if (hasAllyOrGroupBorders.north) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 0, hasAllyOrGroupBorders);
+        if (hasAllyOrGroupBorders.east)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 1, hasAllyOrGroupBorders);
+        if (hasAllyOrGroupBorders.south) this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 2, hasAllyOrGroupBorders);
+        if (hasAllyOrGroupBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, hardBorderColor, canvas, 3, hasAllyOrGroupBorders);
+
+        // Player borders (light)
+        if (hasPlayerBorders.north) this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 0, hasAnyBorders);
+        if (hasPlayerBorders.east)  this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 1, hasAnyBorders);
+        if (hasPlayerBorders.south) this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 2, hasAnyBorders);
+        if (hasPlayerBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 3, hasAnyBorders);
         
         if (village.hasOwnProperty('tempOwnershipLog')) {
           const iconCanvasOffset = 4;
