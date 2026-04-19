@@ -1608,6 +1608,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       
       this.#refreshGroupsUI();
       UI.SuccessMessage(this.UserTranslation.informationMessages.groupUpdated);
+      Dialog.close(); // Close group edit modal
     }
 
     removeGroup(e, groupName) {
