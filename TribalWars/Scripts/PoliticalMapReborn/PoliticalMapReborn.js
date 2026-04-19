@@ -1296,11 +1296,11 @@ if (typeof politicalMapReborn !== 'undefined') {
 
   <div class="gm-section">
     <img alt="" class="premium-icon premium_tooltip ${!game_data.features.Premium.active ? 'premium-icon-disabled' : ''}" src="https://yy1.tribalwars.vodka/graphic/premium/features/Premium_hint.png"
-    data-title='<h3>${this.UserTranslation.legacyMap.premiumAccountTitle}</h3> :: ${!game_data.features.Premium.active ? this.UserTranslation.legacyMap.premiumAccountHtml : this.UserTranslation.legacyMap.premiumAccountMissing}'>
+    data-title="<h3>${this.UserTranslation.legacyMap.premiumAccountTitle}</h3> :: ${!game_data.features.Premium.active ? this.UserTranslation.legacyMap.premiumAccountHtml : this.UserTranslation.legacyMap.premiumAccountMissing}">
     <table class="vis gm-table">
       <tbody>
         <tr>
-          <td><input type="checkbox" onclick="politicalMapReborn.toggleLegacyMap()" ${this.legacyPoliticalMapEnabled || !game_data.features.Premium.active ? 'checked' : ''}></td>
+          <td><input type="checkbox" onclick="politicalMapReborn.toggleLegacyMap(event)" ${this.legacyPoliticalMapEnabled || !game_data.features.Premium.active ? 'checked' : ''}></td>
           <th>${this.UserTranslation.legacyMap.enableLegacyMap}</th>
         </tr>
       </tbody>
@@ -1451,8 +1451,9 @@ if (typeof politicalMapReborn !== 'undefined') {
       });
     }
 
-    async toggleLegacyMap() {
+    async toggleLegacyMap(e) {
       if (!game_data.features.Premium.active) {
+        e.preventDefault();
         UI.ErrorMessage(this.UserTranslation.legacyMap.premiumAccountHtml);
         return;
       }
