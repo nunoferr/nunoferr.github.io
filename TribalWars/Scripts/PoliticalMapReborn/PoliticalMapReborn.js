@@ -919,7 +919,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           legacyMap: {
             enableLegacyMap: 'Ativar Mapa Político Legacy',
             premiumAccountTitle: 'Conta Premium',
-            premiumAccountHtml: 'Uma Conta Premium é necessária para usar os grupos personalizados do Political Map Reborn.',
+            premiumAccountHtml: 'É necessária uma Conta Premium para usar os grupos personalizados do Political Map Reborn.',
             premiumAccountMissing: 'Você tem uma Conta Premium ativa e, portanto, pode usar os grupos personalizados do Political Map Reborn!',
             allies: 'Aliados',
             enemies: 'Inimigos'
