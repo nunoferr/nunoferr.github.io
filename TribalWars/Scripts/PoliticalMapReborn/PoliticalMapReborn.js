@@ -403,6 +403,68 @@ MapSdk = {
     originY = originXY[1] - st_pixel[1] + this.mapOverlay.tileSize[1] / 2;
     return [originX, originY];
   },
+  getTileBasePosition(x_s, y_s, x_c, y_c, offsetX, offsetY) {
+    const pos = this.pixelByCoord(x_s, y_s, x_c, y_c);
+    const halfScaleX = TWMap.map.scale[0] / 2;
+    const halfScaleY = TWMap.map.scale[1] / 2;
+
+    return {
+      baseX: pos[0] - halfScaleX + offsetX,
+      baseY: pos[1] - halfScaleY + offsetY,
+      width: TWMap.map.scale[0],
+      height: TWMap.map.scale[1]
+    };
+  },
+  drawCircleIcon(ctx, x, y, radius, fillStyle, options = {}) {
+    const {
+      borderWidth = 1,
+      strokeStyle = 'black',
+      text,
+      textColor = 'white',
+      font = 'bold 9px Arial',
+      textNudgeY = 0.2
+    } = options;
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = fillStyle;
+    ctx.fill();
+    ctx.lineWidth = borderWidth;
+    ctx.strokeStyle = strokeStyle;
+    ctx.stroke();
+
+    if (text) {
+      ctx.fillStyle = textColor;
+      ctx.font = font;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, y + textNudgeY);
+    }
+  },
+  paintConquerIcon(ctx, village, x_s, y_s, x_c, y_c) {
+    const { baseX, baseY, width } = this.getTileBasePosition(x_s, y_s, x_c, y_c, 4, 4);
+    const iconMargin = 5;
+    const iconX = baseX + width - iconMargin;
+    const iconY = baseY + iconMargin;
+    const triggerGroup = village.lastOwnershipTriggerGroup;
+    const triggerGroupColor = politicalMapReborn?.groups?.[triggerGroup]?.color ?? 'black';
+
+    this.drawCircleIcon(ctx, iconX, iconY, 6, triggerGroupColor, {
+      borderWidth: 1,
+      text: 'i'
+    });
+  },
+  paintGroupVillageIcon(ctx, village, x_s, y_s, x_c, y_c) {
+    const { baseX, baseY, width } = this.getTileBasePosition(x_s, y_s, x_c, y_c, -39, 4);
+    const iconMargin = 5;
+    const iconX = baseX + width - iconMargin;
+    const iconY = baseY + iconMargin;
+    const fillColor = this.groupsColors[village.groupId]?.replace(/,\s*[\d.]+\)$/, ', 1)') ?? 'black';
+
+    this.drawCircleIcon(ctx, iconX, iconY, 3, fillColor, {
+      borderWidth: 0.5
+    });
+  },
   paintBorders(x_s, y_s, x_c, y_c, colorAlly, canvas, borderLocation, hasBorders) {
     // x_s = sector init x, y_s = sector init y.
     // x_c = village x
@@ -542,15 +604,10 @@ MapSdk = {
 
         // Fill the village tile with low opacity group color
         if (village.groupId) {
-          let pos = this.pixelByCoord(x_s, y_s, x_c, y_c);
-          const halfScaleX = TWMap.map.scale[0] / 2;
-          const halfScaleY = TWMap.map.scale[1] / 2;
-          let baseX = pos[0] - halfScaleX + CanvasOffset;
-          let baseY = pos[1] - halfScaleY + CanvasOffset;
-          const W = TWMap.map.scale[0];
-          const H = TWMap.map.scale[1];
+          const { baseX, baseY, width, height } = this.getTileBasePosition(x_s, y_s, x_c, y_c, CanvasOffset, CanvasOffset);
           ctx.fillStyle = this.groupsColors[village.groupId].replace(/,\s*[\d.]+\)$/, ', 0.1)');
-          ctx.fillRect(baseX, baseY, W, H);
+          ctx.fillRect(baseX, baseY, width, height);
+          if (village.isGroupVillage) this.paintGroupVillageIcon(ctx, village, x_s, y_s, x_c, y_c);
         }
 
         // Group border mask: neighbor has different groupId
@@ -628,36 +685,7 @@ MapSdk = {
         if (hasPlayerBorders.west)  this.paintBorders(x_s, y_s, x_c, y_c, lightBorderColor, canvas, 3, hasAnyBorders);
         
         if (village.hasOwnProperty('tempOwnershipLog')) {
-          const iconCanvasOffset = 4;
-          const iconMargin = 5;
-          const iconRadius = 6;
-          const iconBorderWidth = 1;
-          const iconTextNudgeY = 0.2;
-          let pos = this.pixelByCoord(x_s, y_s, x_c, y_c);
-          const halfScaleX = TWMap.map.scale[0] / 2;
-          const halfScaleY = TWMap.map.scale[1] / 2;
-          let baseX = pos[0] - halfScaleX + iconCanvasOffset;
-          let baseY = pos[1] - halfScaleY + iconCanvasOffset;
-          const W = TWMap.map.scale[0];
-
-          const iconX = baseX + W - iconMargin;
-          const iconY = baseY + iconMargin;
-          const triggerGroup = village.lastOwnershipTriggerGroup;
-          const triggerGroupColor = politicalMapReborn?.groups?.[triggerGroup]?.color ?? 'black';
-
-          ctx.beginPath();
-          ctx.arc(iconX, iconY, iconRadius, 0, Math.PI * 2);
-          ctx.fillStyle = triggerGroupColor;
-          ctx.fill();
-          ctx.lineWidth = iconBorderWidth;
-          ctx.strokeStyle = 'black';
-          ctx.stroke();
-
-          ctx.fillStyle = 'white';
-          ctx.font = 'bold 9px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('i', iconX, iconY + iconTextNudgeY);
+          this.paintConquerIcon(ctx, village, x_s, y_s, x_c, y_c);
         }
       }
     }
