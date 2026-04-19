@@ -934,9 +934,10 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     constructor() {
+      var locale = game_data.locale === 'pt_BR' ? 'pt_PT' : game_data.locale;
       this.UserTranslation =
-        game_data.locale in PoliticalMapReborn.PoliticalMapRebornTranslations()
-          ? (this.UserTranslation = PoliticalMapReborn.PoliticalMapRebornTranslations()[game_data.locale])
+        locale in PoliticalMapReborn.PoliticalMapRebornTranslations()
+          ? (this.UserTranslation = PoliticalMapReborn.PoliticalMapRebornTranslations()[locale])
           : PoliticalMapReborn.PoliticalMapRebornTranslations().en_US;
 
       this.alliesMapText = "alliesMapFromTwApi_" + game_data.world;
