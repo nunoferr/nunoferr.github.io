@@ -783,8 +783,6 @@ if (typeof politicalMapReborn !== 'undefined') {
     static PoliticalMapRebornTranslations() {
       return {
         en_US: {
-          title: 'Incoming Tribe Attacks',
-          total: 'Total',
           informationMessages: {
             loadingData: 'Loading data...',
             creatingAndPaintingClusters: 'Creating and painting clusters...',
