@@ -954,10 +954,12 @@ if (typeof politicalMapReborn !== 'undefined') {
         localStorage.getItem(this.playersMapText) !== null
           ? JSON.parse(localStorage.getItem(this.playersMapText))
           : {};
-      this.villagesMap =
+      const storedVillagesMap =
         localStorage.getItem(this.villagesMapText) !== null
-            ? JSON.parse(localStorage.getItem(this.villagesMapText))
+          ? JSON.parse(localStorage.getItem(this.villagesMapText))
           : {};
+      this.villagesMap =
+        this.#decodeVillagesMap(storedVillagesMap);
       this.mapBounds =
         localStorage.getItem(this.mapBoundsText) !== null
             ? JSON.parse(localStorage.getItem(this.mapBoundsText))
@@ -1135,6 +1137,43 @@ if (typeof politicalMapReborn !== 'undefined') {
       return data;
     }
 
+    #decodeVillagesMap(storedVillagesMap) {
+      if (!Array.isArray(storedVillagesMap)) return storedVillagesMap ?? {};
+
+      const villagesMap = {};
+      storedVillagesMap.forEach((row) => {
+        if (!Array.isArray(row) || row.length < 5) return;
+
+        const [id, x, y, allyId, playerId, tempOwnershipLog, showTempOwnershipLog, lastOwnershipTriggerGroup] = row;
+        if (id === undefined || id === null) return;
+
+        villagesMap[id] = {
+          x,
+          y,
+          allyId,
+          playerId,
+          tempOwnershipLog: Array.isArray(tempOwnershipLog) ? tempOwnershipLog : [],
+          showTempOwnershipLog: Boolean(showTempOwnershipLog),
+          lastOwnershipTriggerGroup: lastOwnershipTriggerGroup ?? ''
+        };
+      });
+
+      return villagesMap;
+    }
+
+    #encodeVillagesMap(villagesMap) {
+      return Object.entries(villagesMap).map(([id, village]) => [
+        id,
+        village.x,
+        village.y,
+        village.allyId,
+        village.playerId,
+        village.tempOwnershipLog ?? [],
+        village.showTempOwnershipLog ?? false,
+        village.lastOwnershipTriggerGroup ?? ''
+      ]);
+    }
+
     async #updateTwApiAllies() {
       var fetchedPlayers = await this.#fetchPage('/map/ally.txt');
       var alliesMap = {};
@@ -1191,7 +1230,7 @@ if (typeof politicalMapReborn !== 'undefined') {
         });
       localStorage.setItem(this.mapBoundsText, JSON.stringify(mapBounds));
       this.mapBounds = mapBounds;
-      localStorage.setItem(this.villagesMapText, JSON.stringify(villagesMap));
+      localStorage.setItem(this.villagesMapText, JSON.stringify(this.#encodeVillagesMap(villagesMap)));
       this.villagesMap = villagesMap;
     }
 
