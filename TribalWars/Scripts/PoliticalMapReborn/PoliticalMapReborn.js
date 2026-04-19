@@ -797,9 +797,6 @@ if (typeof politicalMapReborn !== 'undefined') {
             allyAddedToGroup: 'Ally added to group',
             allyRemovedFromGroup: 'Ally removed from group',
           },
-          settings: {
-            title: 'Political Map Reborn Settings'
-          },
           errors: {
             notMapScreen: 'You need to be on the map screen to run the Political Map Reborn.',
             noGroupsCreated: 'There are no groups created on Political Map Reborn.</br>Please create at least one group to run the map.',
