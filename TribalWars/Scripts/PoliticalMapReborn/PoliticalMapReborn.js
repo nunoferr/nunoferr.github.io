@@ -1225,6 +1225,9 @@ if (typeof politicalMapReborn !== 'undefined') {
         #politicalMapRebornSettings .gm-section .premium-icon.premium-icon-disabled {
           opacity: 0.3;
         }
+        #politicalMapRebornSettings .gm-section .premium-icon:hover {
+          opacity: 1;
+        }
         #politicalMapRebornSettings .gm-flex, .politicalMapRebornSettingsEditGroupModal .gm-flex {
           display: flex;
           width: 100%;
