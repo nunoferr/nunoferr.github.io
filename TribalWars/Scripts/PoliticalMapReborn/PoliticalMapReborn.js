@@ -787,7 +787,7 @@ if (typeof politicalMapReborn !== 'undefined') {
             loadingData: 'Loading data...',
             creatingAndPaintingClusters: 'Creating and painting clusters...',
             politicalMapRebornLoaded: 'Political Map Reborn Loaded.',
-            fetchingGroups: 'Fetching political map reborn groups',
+            fetchingGroups: 'Fetching political map reborn groups</br>This could take awhile...',
             fetchingLatestConquers: 'Fetching latest conquers...',
             groupCreatedSuccessfully: 'Group created successfully',
             groupUpdated: 'Group updated',
@@ -862,7 +862,7 @@ if (typeof politicalMapReborn !== 'undefined') {
             loadingData: 'A carregar dados...',
             creatingAndPaintingClusters: 'A criar e desenhar os clusters...',
             politicalMapRebornLoaded: 'Political Map Reborn carregado.',
-            fetchingGroups: 'A carregar os grupos do Political Map Reborn',
+            fetchingGroups: 'A carregar os grupos do Political Map Reborn</br>Isso pode demorar algum tempo...',
             fetchingLatestConquers: 'A carregar as últimas conquistas...',
             groupCreatedSuccessfully: 'Grupo criado com sucesso',
             groupUpdated: 'Grupo atualizado',
@@ -1014,7 +1014,8 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #fetchMapGroups(ignorePoliticalMapRebornGroups = true) {
-      UI.InfoMessage(this.UserTranslation.informationMessages.fetchingGroups);
+      UI.InfoMessage(this.UserTranslation.informationMessages.fetchingGroups, 20000);
+      this.#sleep(200);
       const requestdata = await this.#fetchPage(this.#generateUrl('map'));
       const parsedHtml = $(requestdata);
       var groups = {};
@@ -1155,6 +1156,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #ajaxPost(ajaxaction, postData) {
+      this.#sleep(200);
       const url = this.#generateUrl('map', null, { ajaxaction });
       return await $.ajax({
         url,
@@ -1163,6 +1165,10 @@ if (typeof politicalMapReborn !== 'undefined') {
         contentType: 'application/x-www-form-urlencoded',
         dataType: 'json'
       });
+    }
+
+    async #sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     async #fetchGroupData(dataId, ajaxaction, processor) {
