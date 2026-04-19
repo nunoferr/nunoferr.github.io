@@ -1033,62 +1033,21 @@ if (typeof politicalMapReborn !== 'undefined') {
         var villages = {};
         if (dataId) {
           if (ignorePoliticalMapRebornGroups && !$(element).find(':checkbox').first().prop('checked')) continue; // Skip inactive groups
-          try {
-            const playersUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_get_players' });
-            const playersData = await $.ajax({
-              url: playersUrl,
-              type: 'POST',
-              data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
-              contentType: 'application/x-www-form-urlencoded',
-              dataType: 'json'
+          await this.#fetchGroupData(dataId, 'colorgroup_get_players', (data) => {
+            data.forEach(player => {
+              if (player.id && player.name) players[player.name] = player.id;
             });
-            
-            if (Array.isArray(playersData)) {
-              playersData.forEach(player => {
-                if (player.id && player.name) players[player.name] = player.id;
-              });
-            }
-          } catch (error) {
-            console.error('Failed to fetch players for group:', error);
-          }
-          
-          try {
-            const alliesUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_get_tribes' });
-            const alliesData = await $.ajax({
-              url: alliesUrl,
-              type: 'POST',
-              data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
-              contentType: 'application/x-www-form-urlencoded',
-              dataType: 'json'
+          });
+          await this.#fetchGroupData(dataId, 'colorgroup_get_tribes', (data) => {
+            data.forEach(ally => {
+              if (ally.id && ally.tag) allies[ally.tag] = ally.id;
             });
-            
-            if (Array.isArray(alliesData)) {
-              alliesData.forEach(ally => {
-                if (ally.id && ally.tag) allies[ally.tag] = ally.id;
-              });
-            }
-          } catch (error) {
-            console.error('Failed to fetch allies for group:', error);
-          }
-
-          try {
-            const villagesUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_get_villages' });
-            const villagesData = await $.ajax({
-              url: villagesUrl,
-              type: 'POST',
-              data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
-              contentType: 'application/x-www-form-urlencoded',
-              dataType: 'json'
+          });
+          await this.#fetchGroupData(dataId, 'colorgroup_get_villages', (data) => {
+            data.forEach(village => {
+              if (village.id) villages[village.id] = village.id;
             });
-            
-            if (Array.isArray(villagesData)) {
-              villagesData.forEach(village => {
-                if (village.id) villages[village.id] = village.id;
-              });
-            }
-          } catch (error) {
-            console.error('Failed to fetch villages for group:', error);
-          }
+          });
         }
         var groupName = !ignorePoliticalMapRebornGroups ? groupName.substr(this.politicalMapNamePrefix.length) : groupName;
         groups[groupName] = {
@@ -1184,6 +1143,57 @@ if (typeof politicalMapReborn !== 'undefined') {
         data = data_temp;
       });
       return data;
+    }
+
+    #hexToRgb(hex) {
+      const [r, g, b] = [hex.substr(1, 2), hex.substr(3, 2), hex.substr(5, 2)].map(v => parseInt(v, 16));
+      return { r, g, b };
+    }
+
+    #rgbString(r, g, b) {
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    async #ajaxPost(ajaxaction, postData) {
+      const url = this.#generateUrl('map', null, { ajaxaction });
+      return await $.ajax({
+        url,
+        type: 'POST',
+        data: `${postData}&h=${game_data.csrf}`,
+        contentType: 'application/x-www-form-urlencoded',
+        dataType: 'json'
+      });
+    }
+
+    async #fetchGroupData(dataId, ajaxaction, processor) {
+      try {
+        const data = await this.#ajaxPost(ajaxaction, `group_id=${encodeURIComponent(dataId)}`);
+        if (Array.isArray(data)) {
+          processor(data);
+        }
+      } catch (error) {
+        console.error(`Failed to fetch ${ajaxaction}:`, error);
+      }
+    }
+
+    async #findAndConfigureGroup(groupName, colorHex) {
+      const mapHtml = await this.#fetchPage(this.#generateUrl('map'));
+      const parsedHtml = $(mapHtml);
+      const targetDiv = parsedHtml.find('#map_legend table .map_legend').filter((index, element) => {
+        return $(element).find('span').text().trim() === this.politicalMapNamePrefix + groupName;
+      });
+      
+      if (targetDiv.length === 0) {
+        throw new Error('Group not found');
+      }
+      
+      const dataId = targetDiv.attr('data-id');
+      const { r, g, b } = this.#hexToRgb(colorHex);
+      
+      await this.#ajaxPost('colorgroup_active', `group_id=${encodeURIComponent(dataId)}&active=0`);
+      await this.#ajaxPost('colorgroup_change_color', `group_id=${encodeURIComponent(dataId)}&r=${r}&g=${g}&b=${b}`);
+      
+      return dataId;
     }
 
     #decodeVillagesMap(storedVillagesMap) {
@@ -1574,41 +1584,37 @@ if (typeof politicalMapReborn !== 'undefined') {
     // ==================== GROUPS (shared for players & allies) ====================
 
     #refreshGroupsUI() {
-      // Refresh both group selects
-      $('#politicalMapRebornGroupSelect, #politicalMapRebornAllyGroupSelect').empty();
-      Object.keys(this.groups).forEach(name => {
-        if (name === "0") return; // Skip tribeless and not set tribe group since it doesn't have a real group in TW and can't be edited
-        $('#politicalMapRebornGroupSelect, #politicalMapRebornAllyGroupSelect').append(`<option value="${name}">${name}</option>`);
-      });
+      const updateGroupSelects = (selector) => {
+        $(selector).empty();
+        Object.keys(this.groups).forEach(name => {
+          if (name === "0") return;
+          $(selector).append(`<option value="${name}">${name}</option>`);
+        });
+      };
 
-      // Refresh edit group select
-      $('#politicalMapRebornEditGroupSelect').empty();
-      Object.keys(this.groups).forEach(name => {
-        if (name === "0") return; // Skip tribeless and not set tribe group since it doesn't have a real group in TW and can't be edited
-        $('#politicalMapRebornEditGroupSelect').append(`<option value="${name}">${name}</option>`);
-      });
+      updateGroupSelects('#politicalMapRebornGroupSelect, #politicalMapRebornAllyGroupSelect');
+      updateGroupSelects('#politicalMapRebornEditGroupSelect');
 
       // Refresh groups table (shows both players and allies)
       $('#player-color-select tbody').empty();
       Object.keys(this.groups).forEach(groupName => {
-        if (groupName === "0") return; // Skip tribeless and not set tribe group since it doesn't have a real group in TW and can't be edited
+        if (groupName === "0") return;
         const group = this.groups[groupName];
         const totalMembers = Object.keys(group.players).length + Object.keys(group.allies).length;
+        
         $('#player-color-select tbody').append(`<tr>
           <td rowspan="${totalMembers + 1}" class="gm-group-header-cell">
             <span style="color: ${group.color}">${groupName}</span>
             <img src="https://dszz.innogamescdn.com/asset/11df8195/graphic/edit.png" class="gm-edit-icon" onclick="politicalMapReborn.openEditGroupModal(event, '${groupName}')">
           </td>
         </tr>`);
-        Object.entries(group.players).forEach(([playerName, playerId]) => {
-          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${playerName} <i>(${this.UserTranslation.groups.addPlayerUI.player})</i></td><td class="gm-remove-cell">
-            <div class="gm-remove-btn" onclick="politicalMapReborn.removePlayerFromGroup(event, '${groupName}', '${playerName}')"></div>
-          </td></tr>`);
+        
+        Object.entries(group.players).forEach(([playerName]) => {
+          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${playerName} <i>(${this.UserTranslation.groups.addPlayerUI.player})</i></td><td class="gm-remove-cell"><div class="gm-remove-btn" onclick="politicalMapReborn.removePlayerFromGroup(event, '${groupName}', '${playerName}')"></div></td></tr>`);
         });
+        
         Object.keys(group.allies).forEach(allyTag => {
-          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${allyTag} <i>(${this.UserTranslation.groups.addAllyUI.ally})</i></td><td class="gm-remove-cell">
-            <div class="gm-remove-btn" onclick="politicalMapReborn.removeAllyFromGroup(event, '${groupName}', '${allyTag}')"></div>
-          </td></tr>`);
+          $('#player-color-select tbody').append(`<tr><td class="gm-th-wide">${allyTag} <i>(${this.UserTranslation.groups.addAllyUI.ally})</i></td><td class="gm-remove-cell"><div class="gm-remove-btn" onclick="politicalMapReborn.removeAllyFromGroup(event, '${groupName}', '${allyTag}')"></div></td></tr>`);
         });
       });
     }
@@ -1639,8 +1645,8 @@ if (typeof politicalMapReborn !== 'undefined') {
       const formData = `new_group_name=${this.politicalMapNamePrefix}${encodeURIComponent(groupName)}&for_new_group=Create&h=${game_data.csrf}`;
       
       const hex = $('#politicalMapRebornGroupColor').val();
-      const [r, g, b] = [hex.substr(1, 2), hex.substr(3, 2), hex.substr(5, 2)].map(v => parseInt(v, 16));
-      const color = `rgb(${r}, ${g}, ${b})`;
+      const { r, g, b } = this.#hexToRgb(hex);
+      const color = this.#rgbString(r, g, b);
 
       // Make POST request
       $.ajax({
@@ -1653,49 +1659,14 @@ if (typeof politicalMapReborn !== 'undefined') {
           $('#politicalMapRebornGroupName').val('');
           $('#politicalMapRebornGroupColor').val('#000000');
           
-          // Fetch map page in background to get the data-id
           try {
-            const mapHtml = await this.#fetchPage(this.#generateUrl('map'));
-            
-            // Parse the HTML and find the div with the group name
-            const parsedHtml = $(mapHtml);
-            const targetDiv = parsedHtml.find('#map_legend table .map_legend').filter((index, element) => {
-              return $(element).find('span').text().trim() === this.politicalMapNamePrefix + groupName;
-            });
-            
-            if (targetDiv.length === 0) {
-              UI.ErrorMessage(this.UserTranslation.errors.groupNotFound);
-              return;
-            }
-            
-            const dataId = targetDiv.attr('data-id');
+            const dataId = await this.#findAndConfigureGroup(groupName, hex);
             this.groups[groupName].dataId = dataId;
-            
-            // Submit request to set group as inactive
-            const colorGroupUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_active' });
-            const colorGroupFormData = `group_id=${encodeURIComponent(dataId)}&active=0&h=${game_data.csrf}`;
-            await $.ajax({
-              url: colorGroupUrl,
-              type: 'POST',
-              data: colorGroupFormData,
-              contentType: 'application/x-www-form-urlencoded'
-            });
-            
-            const rgb = this.groups[groupName].color;
-            var [r, g, b] = rgb.match(/\d+/g).map(Number);
-            await $.ajax({
-              url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_change_color' }),
-              type: 'POST',
-              data: `group_id=${encodeURIComponent(dataId)}&r=${r}&g=${g}&b=${b}&h=${game_data.csrf}`,
-              contentType: 'application/x-www-form-urlencoded'
-            });
-            
             this.#refreshGroupsUI();
             UI.SuccessMessage(this.UserTranslation.informationMessages.groupCreatedSuccessfully);
           } catch (error) {
-            console.error('Failed to fetch map page for data-id:', error);
+            console.error('Failed to configure group:', error);
             UI.ErrorMessage(this.UserTranslation.errors.failedToCreateGroup);
-            return;
           }
         },
         error: () => {
@@ -1712,8 +1683,8 @@ if (typeof politicalMapReborn !== 'undefined') {
       if (!newName) return UI.ErrorMessage(this.UserTranslation.errors.groupNameRequired);
       
       const oldGroup = this.groups[currentGroupName];
-      const [r, g, b] = [newColorHex.substr(1, 2), newColorHex.substr(3, 2), newColorHex.substr(5, 2)].map(v => parseInt(v, 16));
-      const newColorRgb = `rgb(${r}, ${g}, ${b})`;
+      const { r, g, b } = this.#hexToRgb(newColorHex);
+      const newColorRgb = this.#rgbString(r, g, b);
       
       if (newName !== currentGroupName) {
         // Check if new name already exists
@@ -1721,18 +1692,13 @@ if (typeof politicalMapReborn !== 'undefined') {
         
         // Delete old group
         const dataId = oldGroup.dataId;
-        await $.ajax({
-          url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_delete' }),
-          type: 'POST',
-          data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
-          contentType: 'application/x-www-form-urlencoded'
-        });
+        await this.#ajaxPost('colorgroup_delete', `group_id=${encodeURIComponent(dataId)}`);
         
         // Create new group with new name and color
         const url = this.#generateUrl('map', null, { type: 'for', action: 'add_for_group' });
         const formData = `new_group_name=${this.politicalMapNamePrefix}${encodeURIComponent(newName)}&for_new_group=Create&h=${game_data.csrf}`;
-        const [r, g, b] = [newColorHex.substr(1, 2), newColorHex.substr(3, 2), newColorHex.substr(5, 2)].map(v => parseInt(v, 16));
-        const color = `rgb(${r}, ${g}, ${b})`;
+        const { r: r2, g: g2, b: b2 } = this.#hexToRgb(newColorHex);
+        const color = this.#rgbString(r2, g2, b2);
         
         await $.ajax({
           url: url,
@@ -1741,64 +1707,31 @@ if (typeof politicalMapReborn !== 'undefined') {
           contentType: 'application/x-www-form-urlencoded'
         });
         
-        // Fetch new dataId
-        const mapHtml = await this.#fetchPage(this.#generateUrl('map'));
-        const parsedHtml = $(mapHtml);
-        const targetDiv = parsedHtml.find('#map_legend table .map_legend').filter((index, element) => {
-          return $(element).find('span').text().trim() === this.politicalMapNamePrefix + newName;
-        });
-        const newDataId = targetDiv.attr('data-id');
-        
-        // Set inactive
-        const colorGroupUrl = this.#generateUrl('map', null, { ajaxaction: 'colorgroup_active' });
-        const colorGroupFormData = `group_id=${encodeURIComponent(newDataId)}&active=0&h=${game_data.csrf}`;
-        await $.ajax({
-          url: colorGroupUrl,
-          type: 'POST',
-          data: colorGroupFormData,
-          contentType: 'application/x-www-form-urlencoded'
-        });
-        
-        // Set color
-        await $.ajax({
-          url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_change_color' }),
-          type: 'POST',
-          data: `group_id=${encodeURIComponent(newDataId)}&r=${r}&g=${g}&b=${b}&h=${game_data.csrf}`,
-          contentType: 'application/x-www-form-urlencoded'
-        });
-        
-        // Add all players and allies to new group
-        for (const [playerName, playerId] of Object.entries(oldGroup.players)) {
-          await $.ajax({
-            url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_add_player' }),
-            type: 'POST',
-            data: `group_id=${encodeURIComponent(newDataId)}&name=${encodeURIComponent(playerName)}&h=${game_data.csrf}`,
-            contentType: 'application/x-www-form-urlencoded'
-          });
+        try {
+          const newDataId = await this.#findAndConfigureGroup(newName, newColorHex);
+          
+          // Add all players and allies to new group
+          for (const [playerName, playerId] of Object.entries(oldGroup.players)) {
+            await this.#ajaxPost('colorgroup_add_player', `group_id=${encodeURIComponent(newDataId)}&name=${encodeURIComponent(playerName)}`);
+          }
+          for (const [allyTag, allyId] of Object.entries(oldGroup.allies)) {
+            await this.#ajaxPost('colorgroup_add_tribe', `group_id=${encodeURIComponent(newDataId)}&name=${encodeURIComponent(allyTag)}`);
+          }
+          
+          // Update local
+          this.groups[newName] = { color: color, dataId: newDataId, players: oldGroup.players, allies: oldGroup.allies };
+          delete this.groups[currentGroupName];
+        } catch (error) {
+          console.error('Failed to configure new group:', error);
+          UI.ErrorMessage(this.UserTranslation.errors.failedToCreateGroup);
+          return;
         }
-        for (const [allyTag, allyId] of Object.entries(oldGroup.allies)) {
-          await $.ajax({
-            url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_add_tribe' }),
-            type: 'POST',
-            data: `group_id=${encodeURIComponent(newDataId)}&name=${encodeURIComponent(allyTag)}&h=${game_data.csrf}`,
-            contentType: 'application/x-www-form-urlencoded'
-          });
-        }
-        
-        // Update local
-        this.groups[newName] = { color: color, dataId: newDataId, players: oldGroup.players, allies: oldGroup.allies };
-        delete this.groups[currentGroupName];
       } else if (newColorRgb !== oldGroup.color) {
         // Just change color
         const dataId = oldGroup.dataId;
-        const [r, g, b] = [newColorHex.substr(1, 2), newColorHex.substr(3, 2), newColorHex.substr(5, 2)].map(v => parseInt(v, 16));
-        await $.ajax({
-          url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_change_color' }),
-          type: 'POST',
-          data: `group_id=${encodeURIComponent(dataId)}&r=${r}&g=${g}&b=${b}&h=${game_data.csrf}`,
-          contentType: 'application/x-www-form-urlencoded'
-        });
-        this.groups[newName].color = `rgb(${r}, ${g}, ${b})`;
+        const { r: r3, g: g3, b: b3 } = this.#hexToRgb(newColorHex);
+        await this.#ajaxPost('colorgroup_change_color', `group_id=${encodeURIComponent(dataId)}&r=${r3}&g=${g3}&b=${b3}`);
+        this.groups[newName].color = this.#rgbString(r3, g3, b3);
       }
       
       this.#refreshGroupsUI();
@@ -1811,12 +1744,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       UI.addConfirmBox(this.UserTranslation.groups.confirmRemoveGroup, async () => {
         const dataId = this.groups[groupName]?.dataId;
         if (dataId) {
-          await $.ajax({
-            url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_delete' }),
-            type: 'POST',
-            data: `group_id=${encodeURIComponent(dataId)}&h=${game_data.csrf}`,
-            contentType: 'application/x-www-form-urlencoded'
-          });
+          await this.#ajaxPost('colorgroup_delete', `group_id=${encodeURIComponent(dataId)}`);
         }
         delete this.groups[groupName];
         this.#refreshGroupsUI();
@@ -1858,18 +1786,8 @@ if (typeof politicalMapReborn !== 'undefined') {
     removePlayerFromGroup(e, groupName, playerName) {
       UI.addConfirmBox(this.UserTranslation.groups.confirmRemovePlayer, async () => {
         e.preventDefault();
-        
-        // Get playerId from map
         const playerId = this.groups[groupName].players[playerName];
-        
-        // Remove player from color group on server
-        await $.ajax({
-          url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_del_player' }),
-          type: 'POST',
-          data: `group_id=${encodeURIComponent(this.groups[groupName]?.dataId)}&id=${encodeURIComponent(playerId)}&h=${game_data.csrf}`,
-          contentType: 'application/x-www-form-urlencoded'
-        });
-        
+        await this.#ajaxPost('colorgroup_del_player', `group_id=${encodeURIComponent(this.groups[groupName]?.dataId)}&id=${encodeURIComponent(playerId)}`);
         delete this.groups[groupName].players[playerName];
         this.#refreshGroupsUI();
         UI.SuccessMessage(this.UserTranslation.informationMessages.playerRemovedFromGroup);
@@ -1879,15 +1797,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     removeAllyFromGroup(e, groupName, allyName) {
       UI.addConfirmBox(this.UserTranslation.groups.confirmRemoveAlly, async () => {
         e.preventDefault();
-        
-        // Remove ally from color group on server
-        await $.ajax({
-          url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_del_tribe' }),
-          type: 'POST',
-          data: `group_id=${encodeURIComponent(this.groups[groupName]?.dataId)}&id=${encodeURIComponent(this.groups[groupName].allies[allyName])}&h=${game_data.csrf}`,
-          contentType: 'application/x-www-form-urlencoded'
-        });
-        
+        await this.#ajaxPost('colorgroup_del_tribe', `group_id=${encodeURIComponent(this.groups[groupName]?.dataId)}&id=${encodeURIComponent(this.groups[groupName].allies[allyName])}`);
         delete this.groups[groupName].allies[allyName];
         this.#refreshGroupsUI();
         UI.SuccessMessage(this.UserTranslation.informationMessages.allyRemovedFromGroup);
@@ -1919,12 +1829,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       if (!exists) return UI.ErrorMessage(this.UserTranslation.errors.playerNotFound);
 
       // Add player to color group on server
-      await $.ajax({
-        url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_add_player' }),
-        type: 'POST',
-        data: `group_id=${encodeURIComponent(this.groups[selectedGroup]?.dataId)}&name=${encodeURIComponent(formatted)}&h=${game_data.csrf}`,
-        contentType: 'application/x-www-form-urlencoded'
-      });
+      await this.#ajaxPost('colorgroup_add_player', `group_id=${encodeURIComponent(this.groups[selectedGroup]?.dataId)}&name=${encodeURIComponent(formatted)}`);
 
       this.groups[selectedGroup].players[formatted] = playerId;
       this.#refreshGroupsUI();
@@ -1957,12 +1862,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       if (!exists) return UI.ErrorMessage(this.UserTranslation.errors.allyNotFound);
 
       // Add tribe to color group on server
-      await $.ajax({
-        url: this.#generateUrl('map', null, { ajaxaction: 'colorgroup_add_tribe' }),
-        type: 'POST',
-        data: `group_id=${encodeURIComponent(this.groups[selectedGroup]?.dataId)}&name=${encodeURIComponent(formatted)}&h=${game_data.csrf}`,
-        contentType: 'application/x-www-form-urlencoded'
-      });
+      await this.#ajaxPost('colorgroup_add_tribe', `group_id=${encodeURIComponent(this.groups[selectedGroup]?.dataId)}&name=${encodeURIComponent(formatted)}`);
 
       this.groups[selectedGroup].allies[formatted] = allyId;
       this.#refreshGroupsUI();
