@@ -1019,7 +1019,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       const parsedHtml = $(requestdata);
       var groups = {};
       const groupElements = parsedHtml.find('#village_colors #for_color_groups tr');
-      for (let i = 0; i < groupElements.length; i++) {
+      for (let i = groupElements.length - 1; i >= 0; i--) {
         const element = groupElements[i];
         var groupName = $(element).find('.group-label').text().trim();
         if (ignorePoliticalMapRebornGroups && groupName.startsWith(this.politicalMapNamePrefix)) continue;
