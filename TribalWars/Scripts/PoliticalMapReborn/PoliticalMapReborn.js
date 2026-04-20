@@ -1047,7 +1047,7 @@ if (typeof politicalMapReborn !== 'undefined') {
 
     async #fetchMapGroups(ignorePoliticalMapRebornGroups = true) {
       UI.InfoMessage(this.UserTranslation.informationMessages.fetchingGroups, 20000);
-      this.#sleep(200);
+      await this.#sleep(200);
       const requestdata = await this.#fetchPage(this.#generateUrl('map'));
       const parsedHtml = $(requestdata);
       var groups = {};
@@ -1143,6 +1143,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       }
 
       this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : await this.#legacyPoliticalMapRebornGroups();
+      if (this.createClustersForAlliesOutsideGroups) this.#syncClustersForAlliesOutsideGroups();
       this.initUI();
     }
 
@@ -1188,7 +1189,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #ajaxPost(ajaxaction, postData) {
-      this.#sleep(200);
+      await this.#sleep(200);
       const url = this.#generateUrl('map', null, { ajaxaction });
       return await $.ajax({
         url,
@@ -1215,6 +1216,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #findAndConfigureGroup(groupName, colorHex) {
+      await this.#sleep(200);
       const mapHtml = await this.#fetchPage(this.#generateUrl('map'));
       const parsedHtml = $(mapHtml);
       const targetDiv = parsedHtml.find('#map_legend table .map_legend').filter((index, element) => {
@@ -1272,6 +1274,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #updateTwApiAllies() {
+      await this.#sleep(200);
       var fetchedPlayers = await this.#fetchPage('/map/ally.txt');
       var alliesMap = {};
       fetchedPlayers
@@ -1286,6 +1289,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #updateTwApiPlayers() {
+      await this.#sleep(200);
       var fetchedPlayers = await this.#fetchPage('/map/player.txt');
       var playersMap = {};
       fetchedPlayers
@@ -1301,6 +1305,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #updateTwApiVillages() {
+      await this.#sleep(200);
       var fetchedWorldVillages = await this.#fetchPage('/map/village.txt');
       var villagesMap = {};
       var mapBounds = {
@@ -1339,6 +1344,7 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async #updateTwApiLatestConquers() {
+      await this.#sleep(200);
       var fetchedWorldVillages = await this.#fetchPage(
         '/interface.php?func=get_conquer&since=' + Math.floor(Date.now() / 1000  + 60 - 24 * 60 * 60) // Added 60 seconds to avoid potential issues with the data no longer being avaliable due to more than 24 hours having passed.
       );
