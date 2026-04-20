@@ -787,7 +787,8 @@ if (typeof politicalMapReborn !== 'undefined') {
             loadingData: 'Loading data...',
             creatingAndPaintingClusters: 'Creating and painting clusters...',
             politicalMapRebornLoaded: 'Political Map Reborn Loaded.',
-            fetchingGroups: 'Fetching groups</br>This could take awhile...',
+            fetchingGroups: 'Fetching groups...',
+            fetchingGroupsInformation: 'Fetching groups information',
             fetchingLatestConquers: 'Fetching latest conquers...',
             groupCreatedSuccessfully: 'Group created successfully',
             groupUpdated: 'Group updated',
@@ -863,7 +864,8 @@ if (typeof politicalMapReborn !== 'undefined') {
             loadingData: 'A carregar dados...',
             creatingAndPaintingClusters: 'A criar e desenhar os clusters...',
             politicalMapRebornLoaded: 'Political Map Reborn carregado.',
-            fetchingGroups: 'A carregar os grupos</br>Isso pode demorar algum tempo...',
+            fetchingGroups: 'A carregar os grupos...',
+            fetchingGroupsInformation: 'A carregar as informações dos grupos...',
             fetchingLatestConquers: 'A carregar as últimas conquistas...',
             groupCreatedSuccessfully: 'Grupo criado com sucesso',
             groupUpdated: 'Grupo atualizado',
@@ -1053,6 +1055,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       var groups = {};
       const groupElements = parsedHtml.find('#village_colors #for_color_groups tr');
       for (let i = groupElements.length - 1; i >= 0; i--) {
+        UI.InfoMessage(`${this.UserTranslation.informationMessages.fetchingGroupsInformation}</br>${groupElements.length - i}/${groupElements.length}`, 20000);
         const element = groupElements[i];
         var groupName = $(element).find('.group-label').text().trim();
         if (ignorePoliticalMapRebornGroups && groupName.startsWith(this.politicalMapNamePrefix)) continue;
