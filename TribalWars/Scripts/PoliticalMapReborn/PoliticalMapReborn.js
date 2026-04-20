@@ -787,7 +787,7 @@ if (typeof politicalMapReborn !== 'undefined') {
             loadingData: 'Loading data...',
             creatingAndPaintingClusters: 'Creating and painting clusters...',
             politicalMapRebornLoaded: 'Political Map Reborn Loaded.',
-            fetchingGroups: 'Fetching political map reborn groups</br>This could take awhile...',
+            fetchingGroups: 'Fetching groups</br>This could take awhile...',
             fetchingLatestConquers: 'Fetching latest conquers...',
             groupCreatedSuccessfully: 'Group created successfully',
             groupUpdated: 'Group updated',
@@ -844,6 +844,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           },
           legacyMap: {
             enableLegacyMap: 'Enable legacy Political Map',
+            createClustersForAlliesOutsideGroups: 'Create clusters for allies outside of groups',
             premiumAccountTitle: 'Premium Account',
             premiumAccountHtml: 'A Premium Account is required to use Political Map Reborn\'s custom groups.',
             premiumAccountMissing: 'You have a Premium Account active and can therefore use Political Map Reborn\'s custom groups!',
@@ -862,7 +863,7 @@ if (typeof politicalMapReborn !== 'undefined') {
             loadingData: 'A carregar dados...',
             creatingAndPaintingClusters: 'A criar e desenhar os clusters...',
             politicalMapRebornLoaded: 'Political Map Reborn carregado.',
-            fetchingGroups: 'A carregar os grupos do Political Map Reborn</br>Isso pode demorar algum tempo...',
+            fetchingGroups: 'A carregar os grupos</br>Isso pode demorar algum tempo...',
             fetchingLatestConquers: 'A carregar as últimas conquistas...',
             groupCreatedSuccessfully: 'Grupo criado com sucesso',
             groupUpdated: 'Grupo atualizado',
@@ -919,6 +920,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           },
           legacyMap: {
             enableLegacyMap: 'Ativar Mapa Político Legacy',
+            createClustersForAlliesOutsideGroups: 'Criar clusters para tribos fora de grupos',
             premiumAccountTitle: 'Conta Premium',
             premiumAccountHtml: 'É necessária uma Conta Premium para usar os grupos personalizados do Political Map Reborn.',
             premiumAccountMissing: 'Você tem uma Conta Premium ativa e, portanto, pode usar os grupos personalizados do Political Map Reborn!',
@@ -948,6 +950,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       this.mapBoundsText = "mapBounds_" + game_data.world;
       this.lastQueryToTwApiText = "lastQueryToTwApi_" + game_data.world;
       this.legacyPoliticalMapEnabledText = "legacyPoliticalMapEnabled_" + game_data.world;
+      this.clustersForAlliesOutsideGroupsEnabledText = "clustersForAlliesOutsideGroupsEnabled_" + game_data.world;
 
       this.alliesMap =
         localStorage.getItem(this.alliesMapText) !== null
@@ -972,9 +975,38 @@ if (typeof politicalMapReborn !== 'undefined') {
         localStorage.getItem(this.legacyPoliticalMapEnabledText) !== null
             ? JSON.parse(localStorage.getItem(this.legacyPoliticalMapEnabledText))
           : game_data.features.Premium.active ? false : true; // Default to legacy map for non-premium users, as they can't create custom groups
+
+      this.createClustersForAlliesOutsideGroups =
+        localStorage.getItem(this.clustersForAlliesOutsideGroupsEnabledText) !== null
+          ? JSON.parse(localStorage.getItem(this.clustersForAlliesOutsideGroupsEnabledText)) : true;
       
       this.politicalMapNamePrefix = "PoliticalMapReborn_";
       this.groups = {};
+    }
+
+    #syncClustersForAlliesOutsideGroups() {
+      const groups = this.groups ?? {};
+
+      const assignedAllies = new Set(
+        Object.entries(groups)
+          .filter(([groupName, group]) => groupName !== '0' && !group?.isAutoUnassignedAllies)
+          .flatMap(([, group]) => Object.values(group?.allies ?? {}).map(String))
+      );
+
+      groups['-1'] = {
+        color: 'rgb(156, 114, 69)',
+        dataId: '_defaultGroup',
+        players: {},
+        allies: {},
+        villages: {},
+        isAutoUnassignedAllies: true
+      };
+
+      Object.entries(this.alliesMap ?? {}).forEach(([allyIdRaw, ally]) => {
+        const allyId = String(allyIdRaw);
+        if (allyId === '0' || assignedAllies.has(allyId)) return;
+        groups['-1'].allies[ally?.tag ?? allyId] = allyId;
+      });
     }
 
     #setTribelessAndNotSetTribeGroup(groups) {
@@ -1331,6 +1363,8 @@ if (typeof politicalMapReborn !== 'undefined') {
     }
 
     async runPoliticalMapReborn() {
+      if (this.createClustersForAlliesOutsideGroups) this.#syncClustersForAlliesOutsideGroups();
+
       if (Object.keys(this.groups).length === 0) {
         UI.ErrorMessage(this.UserTranslation.errors.noGroupsCreated);
         return;
@@ -1340,7 +1374,8 @@ if (typeof politicalMapReborn !== 'undefined') {
       // Double rAF: first fires before paint, second fires after paint completes
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       var politicalMapRebornGroups = { players: {}, allies: {}, villages: {},groupsColors: {} };
-      $.each(this.groups, (_, group) => {
+      $.each(this.groups, (groupName, group) => {
+        if (groupName === '-1' && !this.createClustersForAlliesOutsideGroups) return;
         $.each(group.players ?? {}, (_, playerId) => {
           politicalMapRebornGroups.players[playerId] = group.dataId;
         });
@@ -1481,6 +1516,10 @@ if (typeof politicalMapReborn !== 'undefined') {
           <td><input type="checkbox" onclick="politicalMapReborn.toggleLegacyMap(event)" ${this.legacyPoliticalMapEnabled || !game_data.features.Premium.active ? 'checked' : ''}></td>
           <th>${this.UserTranslation.legacyMap.enableLegacyMap}</th>
         </tr>
+        <tr>
+          <td><input type="checkbox" onclick="politicalMapReborn.toggleCreateClustersForAlliesOutsideGroups(event)" ${this.createClustersForAlliesOutsideGroups ? 'checked' : ''}></td>
+          <th>${this.UserTranslation.legacyMap.createClustersForAlliesOutsideGroups}</th>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -1557,9 +1596,9 @@ if (typeof politicalMapReborn !== 'undefined') {
         </tbody>
       </table>
     </div>
+    <div class="btn gm-reload-btn" onclick="politicalMapReborn.runPoliticalMapReborn()">${this.UserTranslation.reloadButton}</div>
   </div>
-</div>
-<div class="btn gm-reload-btn" onclick="politicalMapReborn.runPoliticalMapReborn()">${this.UserTranslation.reloadButton}</div>`).insertAfter($("#continent_id").parent());
+</div>`).insertAfter($("#continent_id").parent());
 
       // UI - Add Settings Button
       $(`<a class="gm-settings-link" href="#" onclick="politicalMapReborn.openSettings(event)">${this.UserTranslation.settingsLink}</a>`).insertAfter($("#continent_id").parent());
@@ -1589,11 +1628,10 @@ if (typeof politicalMapReborn !== 'undefined') {
 
     // ==================== GROUPS (shared for players & allies) ====================
 
-    #refreshGroupsUI() {
-      const updateGroupSelects = (selector) => {
+    #refreshGroupsUI() {      const updateGroupSelects = (selector) => {
         $(selector).empty();
         Object.keys(this.groups).forEach(name => {
-          if (name === "0") return;
+          if (name === "0" || name === '-1') return;
           $(selector).append(`<option value="${name}">${name}</option>`);
         });
       };
@@ -1604,7 +1642,7 @@ if (typeof politicalMapReborn !== 'undefined') {
       // Refresh groups table (shows both players and allies)
       $('#player-color-select tbody').empty();
       Object.keys(this.groups).forEach(groupName => {
-        if (groupName === "0") return;
+        if (groupName === "0" || groupName === '-1') return;
         const group = this.groups[groupName];
         const totalMembers = Object.keys(group.players).length + Object.keys(group.allies).length;
         
@@ -1634,8 +1672,17 @@ if (typeof politicalMapReborn !== 'undefined') {
       this.legacyPoliticalMapEnabled = !this.legacyPoliticalMapEnabled;
       localStorage.setItem(this.legacyPoliticalMapEnabledText, this.legacyPoliticalMapEnabled);
       this.groups = !this.legacyPoliticalMapEnabled ? await this.#fetchPoliticalMapRebornGroups() : await this.#legacyPoliticalMapRebornGroups();
+      if (this.createClustersForAlliesOutsideGroups) this.#syncClustersForAlliesOutsideGroups();
       $('#politicalMapRebornSettings .gm-flex').toggle();
       this.#refreshGroupsUI();
+    }
+
+    toggleCreateClustersForAlliesOutsideGroups(e) {
+      this.createClustersForAlliesOutsideGroups = !this.createClustersForAlliesOutsideGroups;
+      localStorage.setItem(this.clustersForAlliesOutsideGroupsEnabledText, this.createClustersForAlliesOutsideGroups);
+      if (this.createClustersForAlliesOutsideGroups) this.#syncClustersForAlliesOutsideGroups();
+      this.#refreshGroupsUI();
+      this.runPoliticalMapReborn();
     }
 
     addGroup(e) {
