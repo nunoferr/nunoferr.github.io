@@ -1482,6 +1482,18 @@ if (typeof politicalMapReborn !== 'undefined') {
         .gm-settings-link {
           font-size: 15px;
         }
+        .pmrb-credits-banner {
+          display: block;
+          background-image: url(https://dspt.innogamescdn.com/asset/2a2f957f/graphic/screen/tableheader_bg3.png);
+          background-repeat: round;
+          margin: -4px 0 4px -5px;
+          border-radius: 4px 0 -4px 5px;
+          text-align: center;
+          font-weight: bold;
+          font-size: 15px;
+          line-height: 1.7;
+          width: calc(100% - 10px);
+        }
         .gm-reload-btn {
           font-size: 14px !important;
           padding: 8px;
@@ -1607,15 +1619,12 @@ if (typeof politicalMapReborn !== 'undefined') {
 </div>`).insertAfter($("#continent_id").parent());
 
       // UI - Add Settings Button
-      $(`<a class="gm-settings-link" href="#" onclick="politicalMapReborn.openSettings(event)">${this.UserTranslation.settingsLink}</a>`).insertAfter($("#continent_id").parent());
+      const settingsLink = $(`<a class="gm-settings-link" href="#" onclick="politicalMapReborn.openSettings(event)">${this.UserTranslation.settingsLink}</a>`).insertAfter($("#continent_id").parent());
 
-      // REMOVE BEFORE RELEASE
+      // UI - Add credits banner after the settings container
+      $(`<div class="pmrb-credits-banner">${this.UserTranslation.credits}</div>`).insertAfter($("#politicalMapRebornSettings"));
+
       $("#politicalMapRebornSettings").toggle();
-
-      // UI - Add credits to the bottom of the map
-      $(`<div style="background-image: url(https://dspt.innogamescdn.com/asset/2a2f957f/graphic/screen/tableheader_bg3.png);background-repeat: round;margin-bottom: 0px;border-radius: 0px 0 8px 8px;text-align: center;font-weight: bold;font-size: 13px;line-height: 1.7;">
-          ${this.UserTranslation.credits}
-        </div>`).insertAfter($("#map_whole"));
 
       // UI - Set tooltip to premium icon
       UI.ToolTip($(".premium_tooltip")) 
