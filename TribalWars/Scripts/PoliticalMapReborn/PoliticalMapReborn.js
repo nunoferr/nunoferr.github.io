@@ -1,7 +1,7 @@
 /*
  * Script Name: Political Map Reborn
- * Version: v0.1.10
- * Last Updated:
+ * Version: v0.1.11
+ * Last Updated: 2026-06-27
  * Author: NunoF-
  * Author URL: https://nunoferr.github.io/
  * Script Development Host: https://github.com/nunoferr/nunoferr.github.io/blob/main/TribalWars/Scripts/PoliticalMapReborn/PoliticalMapReborn.js
@@ -854,7 +854,7 @@ if (typeof politicalMapReborn !== 'undefined') {
           settingsLink: 'Political Map Reborn Settings',
           reloadButton: 'Reload Political Map Reborn',
           runPoliticalMapReborn: 'Run Political Map Reborn',
-          credits: 'Political Map Reborn script v0.1.10 by NunoF-',
+          credits: 'Political Map Reborn script v0.1.11 by NunoF-',
         },
         pt_PT: {
           informationMessages: {
